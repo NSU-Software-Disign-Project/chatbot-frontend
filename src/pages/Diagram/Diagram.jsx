@@ -1,5 +1,5 @@
-import React, {useEffect, useRef} from 'react';
-import * as go from 'gojs';
+import React, { useEffect, useRef } from "react";
+import * as go from "gojs";
 import saveBlock from "./Blocks/saveBlock";
 import messageBlock from "./Blocks/messageBlock";
 import conditionalBlock from "./Blocks/conditionalBlock";
@@ -30,7 +30,6 @@ const Diagram = () => {
     URL.revokeObjectURL(url);
   }
 
-
   function loadDiagram() {
     const fileInput = document.createElement("input");
     fileInput.type = "file";
@@ -47,7 +46,11 @@ const Diagram = () => {
           const parsedData = JSON.parse(json);
           const diagram = diagramRefObject.current;
 
-          if (parsedData && parsedData.nodeDataArray && parsedData.linkDataArray) {
+          if (
+            parsedData &&
+            parsedData.nodeDataArray &&
+            parsedData.linkDataArray
+          ) {
             diagram.model = go.Model.fromJson(parsedData);
           } else {
             alert("Некорректный формат данных файла.");
@@ -67,9 +70,9 @@ const Diagram = () => {
     const $ = go.GraphObject.make;
 
     const diagram = $(go.Diagram, diagramRef.current, {
-      'undoManager.isEnabled': true,
-      'linkingTool.isEnabled': true,
-      'relinkingTool.isEnabled': true,
+      "undoManager.isEnabled": true,
+      "linkingTool.isEnabled": true,
+      "relinkingTool.isEnabled": true,
       layout: $(go.LayeredDigraphLayout),
     });
     diagram.nodeTemplateMap.add("saveBlock", saveBlock);
@@ -79,20 +82,25 @@ const Diagram = () => {
     diagram.nodeTemplate = $(
       go.Node,
       "Auto",
-      $(go.Shape, "RoundedRectangle", {stroke: "purple", strokeWidth: 2, fill:"rgba(173,0,255,0.25)" }),
-      new go.TextBlock(
-        { text:"Start Block",
-          column: 0, row: 0, columnSpan: 4, alignment: go.Spot.Center,
-          font: "bold 8pt sans-serif", margin: new go.Margin(4, 10, 0, 0), stroke:"#F99EFF"}
-      ),
-      $(
-        go.Panel,
-        "Vertical",
-        {
-          alignment: go.Spot.Right,
-          alignmentFocus: go.Spot.Right,
-        },
-      ).add(createPort("OUT", go.Spot.Right, false, "purple")),
+      $(go.Shape, "RoundedRectangle", {
+        stroke: "purple",
+        strokeWidth: 2,
+        fill: "rgba(173,0,255,0.25)",
+      }),
+      new go.TextBlock({
+        text: "Start Block",
+        column: 0,
+        row: 0,
+        columnSpan: 4,
+        alignment: go.Spot.Center,
+        font: "bold 8pt sans-serif",
+        margin: new go.Margin(4, 10, 0, 0),
+        stroke: "#F99EFF",
+      }),
+      $(go.Panel, "Vertical", {
+        alignment: go.Spot.Right,
+        alignmentFocus: go.Spot.Right,
+      }).add(createPort("OUT", go.Spot.Right, false, "purple"))
     );
 
     diagram.linkTemplate = $(
@@ -103,12 +111,13 @@ const Diagram = () => {
         toShortLength: 4,
       },
       new go.Binding("points").makeTwoWay(),
-      $(go.Shape,
-        { isPanelMain: true, stroke: "white", strokeWidth: 1 }
-      ),
-      $(go.Shape,
-        { toArrow: "roundedTriangle", stroke: "white", fill: "white", scale: 0.8 }
-      ),
+      $(go.Shape, { isPanelMain: true, stroke: "white", strokeWidth: 1 }),
+      $(go.Shape, {
+        toArrow: "roundedTriangle",
+        stroke: "white",
+        fill: "white",
+        scale: 0.8,
+      })
     );
 
     diagram.layout = new go.LayeredDigraphLayout({ columnSpacing: 10 });
@@ -123,7 +132,7 @@ const Diagram = () => {
         {
           key: 1,
           category: "messageBlock",
-          message:"Text message"
+          message: "Text message",
         },
         {
           key: 2,
@@ -137,7 +146,7 @@ const Diagram = () => {
         {
           key: 3,
           category: "optionsBlock",
-          additionalTexts: [{ text: "Default Option" }] ,
+          additionalTexts: [{ text: "Default Option" }],
         },
         {
           key: 4,
@@ -168,7 +177,7 @@ const Diagram = () => {
       {
         key: 1,
         category: "messageBlock",
-        message:"Text message"
+        message: "Text message",
       },
       {
         key: 2,
@@ -182,7 +191,7 @@ const Diagram = () => {
       {
         key: 3,
         category: "optionsBlock",
-        additionalTexts: [{ text: "Default Option" }] ,
+        additionalTexts: [{ text: "Default Option" }],
       },
       {
         key: 4,
@@ -202,16 +211,16 @@ const Diagram = () => {
       <button
         onClick={saveDiagram}
         style={{
-          marginRight:  "10px",
-          backgroundColor: 'rgb(30,30,30)',
-          color: '#fff',
-          border: 'none',
-          padding: '10px',
-          borderRadius: '5px',
-          cursor: 'pointer',
-          fontWeight: 'bold',
-          boxShadow: '0 2px 10px rgba(0, 0, 0, 0.3)',
-          transition: 'background-color 0.3s ease',
+          marginRight: "10px",
+          backgroundColor: "rgb(30,30,30)",
+          color: "#fff",
+          border: "none",
+          padding: "10px",
+          borderRadius: "5px",
+          cursor: "pointer",
+          fontWeight: "bold",
+          boxShadow: "0 2px 10px rgba(0, 0, 0, 0.3)",
+          transition: "background-color 0.3s ease",
         }}
       >
         Сохранить диаграмму
@@ -219,42 +228,40 @@ const Diagram = () => {
       <button
         onClick={loadDiagram}
         style={{
-          backgroundColor: 'rgb(30,30,30)',
-          color: '#fff',
-          border: 'none',
-          padding: '10px',
-          borderRadius: '5px',
-          cursor: 'pointer',
-          fontWeight: 'bold',
-          boxShadow: '0 2px 10px rgba(0, 0, 0, 0.3)',
-          transition: 'background-color 0.3s ease',
+          backgroundColor: "rgb(30,30,30)",
+          color: "#fff",
+          border: "none",
+          padding: "10px",
+          borderRadius: "5px",
+          cursor: "pointer",
+          fontWeight: "bold",
+          boxShadow: "0 2px 10px rgba(0, 0, 0, 0.3)",
+          transition: "background-color 0.3s ease",
         }}
       >
         Загрузить диаграмму
       </button>
-      <div style={{display: 'flex', gap: '0px', height: '100vh'}}>
+      <div style={{ display: "flex", gap: "0px", height: "100vh" }}>
         <div
           ref={paletteRef}
           style={{
-            background: 'rgb(10,10,10)',
-            width: '150px',
-            height: '100vh',
-            borderRight: '1px white',
-            borderStyle: 'dashed',
+            background: "rgb(10,10,10)",
+            width: "150px",
+            height: "100vh",
+            borderRight: "1px white",
+            borderStyle: "dashed",
             borderRadius: 10,
-            overflowY: 'auto', // Добавляем прокрутку, если содержимое палитры превышает высоту экрана
+            overflowY: "auto", // Добавляем прокрутку, если содержимое палитры превышает высоту экрана
           }}
-        >
-        </div>
+        ></div>
         <div
           ref={diagramRef}
           style={{
-            background: 'rgb(10,10,10)',
+            background: "rgb(10,10,10)",
             flexGrow: 1,
-            height: '100vh',
+            height: "100vh",
           }}
-        >
-        </div>
+        ></div>
       </div>
     </>
   );

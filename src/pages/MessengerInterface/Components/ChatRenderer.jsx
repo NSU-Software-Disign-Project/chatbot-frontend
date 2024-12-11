@@ -1,4 +1,4 @@
-export default class chatRenderer {
+class ChatRenderer {
   constructor(chatContainer) {
     this.chatContainer = chatContainer;
     this.optionsContainer = null;
@@ -13,7 +13,8 @@ export default class chatRenderer {
   }
 
   renderOptions(options, callback) {
-    this.clearOptions();
+    this.clearOptions(); // Очистка старых вариантов, если есть
+
     this.optionsContainer = document.createElement("div");
     this.optionsContainer.classList.add("options");
 
@@ -24,18 +25,22 @@ export default class chatRenderer {
       this.optionsContainer.appendChild(button);
     });
 
+    // Добавляем контейнер с вариантами в чат
     this.chatContainer.appendChild(this.optionsContainer);
     this.scrollToBottom();
   }
 
   clearOptions() {
+    // Удаляем контейнер с вариантами, если он существует
     if (this.optionsContainer) {
-      this.optionsContainer.remove();
-      this.optionsContainer = null;
+      this.optionsContainer.innerHTML = ""; // Очищаем содержимое, а не сам элемент
     }
   }
 
   scrollToBottom() {
+    // Прокручиваем контейнер вниз
     this.chatContainer.scrollTop = this.chatContainer.scrollHeight;
   }
 }
+
+export default ChatRenderer;

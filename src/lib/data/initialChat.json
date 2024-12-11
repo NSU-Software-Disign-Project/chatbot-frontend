@@ -1,0 +1,201 @@
+{
+  "class": "GraphLinksModel",
+  "linkFromPortIdProperty": "fromPort",
+  "linkToPortIdProperty": "toPort",
+  "nodeDataArray": [
+    { "key": 0, "category": "startBlock" },
+    {
+      "key": 1,
+      "category": "messageBlock",
+      "message": "Здравствуйте, вас приветствует бот-ассистент!"
+    },
+    {
+      "key": 2,
+      "category": "messageBlock",
+      "message": "Как можем вам помочь?"
+    },
+    {
+      "key": 3,
+      "category": "optionsBlock",
+      "additionalTexts": [
+        { "text": "Записаться", "portId": "OUT1" },
+        { "text": "Посмотреть адреса", "portId": "OUT2" },
+        { "text": "Посмотреть услуги", "portId": "OUT3" }
+      ]
+    },
+    {
+      "key": 4,
+      "category": "inputBlock",
+      "prompt": "Введите ФИО"
+    },
+    {
+      "key": 5,
+      "category": "inputBlock",
+      "prompt": "Введите номер телефона"
+    },
+    {
+      "key": 6,
+      "category": "messageBlock",
+      "message": "Ваша заявка отправлена!"
+    },
+    {
+      "key": 7,
+      "category": "messageBlock",
+      "message": "Доступные адреса:\n- Пирогова 14\n- Строителей 35\n- Морской 1"
+    },
+    {
+      "key": 8,
+      "category": "messageBlock",
+      "message": "Какой тип услуги Вам нужен?"
+    },
+    {
+      "key": 9,
+      "category": "optionsBlock",
+      "additionalTexts": [
+        { "text": "Анализы", "portId": "OUT4" },
+        { "text": "Прием у врача", "portId": "OUT5" }
+      ]
+    },
+    {
+      "key": 10,
+      "category": "messageBlock",
+      "message": "Список доступных анализов:\n- Диагностика диабета\n- Проверка витамина D\n- Диагностика функции печени"
+    },
+    {
+      "key": 11,
+      "category": "messageBlock",
+      "message": "Выберите специалиста:"
+    },
+    {
+      "key": 12,
+      "category": "optionsBlock",
+      "additionalTexts": [
+        { "text": "Пирогов", "portId": "OUT6" },
+        { "text": "Гиппократ", "portId": "OUT7" },
+        { "text": "Луи Пастер", "portId": "OUT8" }
+      ]
+    },
+    {
+      "key": 13,
+      "category": "messageBlock",
+      "message": "Информация о специалисте Пирогов:"
+    },
+    {
+      "key": 14,
+      "category": "messageBlock",
+      "message": "Информация о специалисте Гиппократ:"
+    },
+    {
+      "key": 15,
+      "category": "messageBlock",
+      "message": "Информация о специалисте Луи Пастер:"
+    }
+  ],
+  "linkDataArray": [
+    {
+      "from": 0,
+      "to": 1,
+      "fromPort": "OUT",
+      "toPort": "IN",
+      "points": [71, 85, 81, 85, 112, 85, 122, 85]
+    },
+    {
+      "from": 1,
+      "to": 2,
+      "fromPort": "OUT",
+      "toPort": "IN",
+      "points": [392, 85, 402, 85, 435, 85, 445, 85]
+    },
+    {
+      "from": 2,
+      "to": 3,
+      "fromPort": "OUT",
+      "toPort": "IN",
+      "points": [653, 85, 663, 85, 695, 85, 705, 85]
+    },
+    {
+      "from": 3,
+      "to": 4,
+      "fromPort": "OUT1",
+      "toPort": "IN",
+      "points": [766, 85, 776, 85, 809, 85, 819, 85]
+    },
+    {
+      "from": 3,
+      "to": 7,
+      "fromPort": "OUT2",
+      "toPort": "IN",
+      "points": [766, 85, 776, 85, 809, 85, 819, 85]
+    },
+    {
+      "from": 3,
+      "to": 8,
+      "fromPort": "OUT3",
+      "toPort": "IN",
+      "points": [766, 85, 776, 85, 809, 85, 819, 85]
+    },
+    {
+      "from": 4,
+      "to": 5,
+      "fromPort": "OUT",
+      "toPort": "IN",
+      "points": [920, 85, 930, 85, 963, 85, 973, 85]
+    },
+    {
+      "from": 5,
+      "to": 6,
+      "fromPort": "OUT",
+      "toPort": "IN",
+      "points": [1100, 85, 1110, 85, 1143, 85, 1153, 85]
+    },
+    {
+      "from": 3,
+      "to": 9,
+      "fromPort": "OUT5",
+      "toPort": "IN",
+      "points": [1300, 85, 1310, 85, 1343, 85, 1353, 85]
+    },
+    {
+      "from": 9,
+      "to": 10,
+      "fromPort": "OUT4",
+      "toPort": "IN",
+      "points": [1500, 85, 1510, 85, 1543, 85, 1553, 85]
+    },
+    {
+      "from": 9,
+      "to": 11,
+      "fromPort": "OUT5",
+      "toPort": "IN",
+      "points": [1500, 85, 1510, 85, 1543, 85, 1553, 85]
+    },
+    {
+      "from": 11,
+      "to": 12,
+      "fromPort": "OUT",
+      "toPort": "IN",
+      "points": [1700, 85, 1710, 85, 1743, 85, 1753, 85]
+    },
+    {
+      "from": 12,
+      "to": 13,
+      "fromPort": "OUT6",
+      "toPort": "IN",
+      "points": [1900, 85, 1910, 85, 1943, 85, 1953, 85]
+    },
+    {
+      "from": 12,
+      "to": 14,
+      "fromPort": "OUT7",
+      "toPort": "IN",
+      "points": [1900, 85, 1910, 85, 1943, 85, 1953, 85]
+    },
+    {
+      "from": 12,
+      "to": 15,
+      "fromPort": "OUT8",
+      "toPort": "IN",
+      "points": [1900, 85, 1910, 85, 1943, 85, 1953, 85]
+    }
+  ]
+}
