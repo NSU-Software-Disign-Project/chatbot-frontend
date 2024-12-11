@@ -2,9 +2,10 @@ import React, {useEffect, useRef} from 'react';
 import * as go from 'gojs';
 import saveBlock from "./Blocks/saveBlock";
 import messageBlock from "./Blocks/messageBlock";
-import conditionalBlock from "./Blocks/conditionalBlock";
-import optionsBlock from "./Blocks/optionsBlock";
+import {createConditionalBlock} from "./Blocks/conditionalBlock";
+import {createOptionsBlock} from "./Blocks/optionsBlock";
 import createPort from "./Blocks/createPort";
+import {createDiagram} from "./Blocks/diagram";
 
 const Diagram = () => {
   const diagramRef = useRef(null);
@@ -65,17 +66,16 @@ const Diagram = () => {
 
   useEffect(() => {
     const $ = go.GraphObject.make;
+    let diagram;
 
-    const diagram = $(go.Diagram, diagramRef.current, {
-      'undoManager.isEnabled': true,
-      'linkingTool.isEnabled': true,
-      'relinkingTool.isEnabled': true,
-      layout: $(go.LayeredDigraphLayout),
-    });
+    if (diagramRef.current) {
+      diagram = createDiagram(diagramRef.current);
+    }
+
     diagram.nodeTemplateMap.add("saveBlock", saveBlock);
     diagram.nodeTemplateMap.add("messageBlock", messageBlock);
-    diagram.nodeTemplateMap.add("conditionalBlock", conditionalBlock);
-    diagram.nodeTemplateMap.add("optionsBlock", optionsBlock);
+    diagram.nodeTemplateMap.add("conditionalBlock", createConditionalBlock(diagram));
+    diagram.nodeTemplateMap.add("optionsBlock", createOptionsBlock(diagram));
     diagram.nodeTemplate = $(
       go.Node,
       "Auto",
@@ -128,9 +128,7 @@ const Diagram = () => {
         {
           key: 2,
           category: "conditionalBlock",
-          value: "age",
-          condition: ">=",
-          conditionValue: "18",
+          value: "valueName",
           inputs: [{ portId: "IN1" }],
           outputs: [{ portId: "OUT1" }, { portId: "OUT2" }],
         },
@@ -173,9 +171,7 @@ const Diagram = () => {
       {
         key: 2,
         category: "conditionalBlock",
-        value: "age",
-        condition: ">=",
-        conditionValue: "18",
+        value: "variableName",
         inputs: [{ portId: "IN1" }],
         outputs: [{ portId: "OUT1" }, { portId: "OUT2" }],
       },
@@ -202,7 +198,7 @@ const Diagram = () => {
       <button
         onClick={saveDiagram}
         style={{
-          marginRight:  "10px",
+          marginRight: "10px",
           backgroundColor: 'rgb(30,30,30)',
           color: '#fff',
           border: 'none',
@@ -231,6 +227,22 @@ const Diagram = () => {
         }}
       >
         Загрузить диаграмму
+      </button>
+      <button
+        // onClick={}
+        style={{
+          backgroundColor: 'rgb(30,30,30)',
+          color: '#fff',
+          border: 'none',
+          padding: '10px',
+          borderRadius: '5px',
+          cursor: 'pointer',
+          fontWeight: 'bold',
+          boxShadow: '0 2px 10px rgba(0, 0, 0, 0.3)',
+          transition: 'background-color 0.3s ease',
+        }}
+      >
+        Запустить бота
       </button>
       <div style={{display: 'flex', gap: '0px', height: '100vh'}}>
         <div
