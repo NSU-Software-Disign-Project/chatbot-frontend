@@ -1,4 +1,4 @@
-import React, {useEffect, useRef} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import * as go from 'gojs';
 import saveBlock from "./Blocks/saveBlock";
 import messageBlock from "./Blocks/messageBlock";
@@ -6,11 +6,16 @@ import {createConditionalBlock} from "./Blocks/conditionalBlock";
 import {createOptionsBlock} from "./Blocks/optionsBlock";
 import createPort from "./Blocks/createPort";
 import {createDiagram} from "./Blocks/diagram";
+import ChatPreview from "../Messenger/ChatPreview";
+import serverStart from "../Messenger/webSocket";
+
 
 const Diagram = () => {
   const diagramRef = useRef(null);
   const paletteRef = useRef(null);
   const diagramRefObject = useRef(null);
+  const [isChatOpen, setIsChatOpen] = useState(false);
+
 
   function saveDiagram() {
     const diagram = diagramRefObject.current;
@@ -94,6 +99,9 @@ const Diagram = () => {
         },
       ).add(createPort("OUT", go.Spot.Right, false, "purple")),
     );
+
+    diagram.div.style.pointerEvents = "auto";
+
 
     diagram.linkTemplate = $(
       go.Link,
@@ -193,21 +201,23 @@ const Diagram = () => {
       palette.div = null;
     };
   }, []);
+
   return (
     <>
+      {/* Кнопки управления */}
       <button
         onClick={saveDiagram}
         style={{
           marginRight: "10px",
-          backgroundColor: 'rgb(30,30,30)',
-          color: '#fff',
-          border: 'none',
-          padding: '10px',
-          borderRadius: '5px',
-          cursor: 'pointer',
-          fontWeight: 'bold',
-          boxShadow: '0 2px 10px rgba(0, 0, 0, 0.3)',
-          transition: 'background-color 0.3s ease',
+          backgroundColor: "rgb(30,30,30)",
+          color: "#fff",
+          border: "none",
+          padding: "10px",
+          borderRadius: "5px",
+          cursor: "pointer",
+          fontWeight: "bold",
+          boxShadow: "0 2px 10px rgba(0, 0, 0, 0.3)",
+          transition: "background-color 0.3s ease",
         }}
       >
         Сохранить диаграмму
@@ -215,61 +225,91 @@ const Diagram = () => {
       <button
         onClick={loadDiagram}
         style={{
-          backgroundColor: 'rgb(30,30,30)',
-          color: '#fff',
-          border: 'none',
-          padding: '10px',
-          borderRadius: '5px',
-          cursor: 'pointer',
-          fontWeight: 'bold',
-          boxShadow: '0 2px 10px rgba(0, 0, 0, 0.3)',
-          transition: 'background-color 0.3s ease',
+          backgroundColor: "rgb(30,30,30)",
+          color: "#fff",
+          border: "none",
+          padding: "10px",
+          borderRadius: "5px",
+          cursor: "pointer",
+          fontWeight: "bold",
+          boxShadow: "0 2px 10px rgba(0, 0, 0, 0.3)",
+          transition: "background-color 0.3s ease",
         }}
       >
         Загрузить диаграмму
       </button>
+      {!isChatOpen ? (
       <button
-        // onClick={}
+        onClick={() =>{setIsChatOpen(!isChatOpen)}}
         style={{
-          backgroundColor: 'rgb(30,30,30)',
-          color: '#fff',
-          border: 'none',
-          padding: '10px',
-          borderRadius: '5px',
-          cursor: 'pointer',
-          fontWeight: 'bold',
-          boxShadow: '0 2px 10px rgba(0, 0, 0, 0.3)',
-          transition: 'background-color 0.3s ease',
+          position: "absolute",
+          top: "10px",
+          right: "10px",
+          backgroundColor: "rgb(30,30,30)",
+          color: "#fff",
+          border: "none",
+          padding: "10px",
+          borderRadius: "5px",
+          cursor: "pointer",
+          fontWeight: "bold",
+          zIndex: 100,
         }}
       >
-        Запустить бота
-      </button>
-      <div style={{display: 'flex', gap: '0px', height: '100vh'}}>
+        {isChatOpen ? "" : "Запустить бота"}
+      </button>)
+        :
+        (<div></div>)
+
+      }
+
+      {/* Контейнер для диаграммы */}
+      <div style={{ display: "flex", height: "100vh", gap: "0px" }}>
         <div
           ref={paletteRef}
           style={{
-            background: 'rgb(10,10,10)',
-            width: '150px',
-            height: '100vh',
-            borderRight: '1px white',
-            borderStyle: 'dashed',
+            background: "rgb(10,10,10)",
+            width: "150px",
+            height: "100vh",
+            borderRight: "1px dashed white",
             borderRadius: 10,
-            overflowY: 'auto', // Добавляем прокрутку, если содержимое палитры превышает высоту экрана
+            overflowY: "auto",
           }}
-        >
-        </div>
+        ></div>
         <div
           ref={diagramRef}
           style={{
-            background: 'rgb(10,10,10)',
+            background: "rgb(10,10,10)",
             flexGrow: 1,
-            height: '100vh',
+            height: "100vh",
+            overflow: "auto",
+          }}
+        ></div>
+      </div>
+
+
+      {/* Чат — независимый слой HTML */}
+      {isChatOpen && (
+        <div
+          id="chat-container"
+          style={{
+            position: "fixed",
+            right: 0,
+            top: 0,
+            bottom: 0,
+            width: "300px",
+            background: "none",
+            color: "#fff",
+            boxShadow: "-2px 0 10px rgba(0, 0, 0, 0.5)",
+            zIndex: 101,
           }}
         >
+          <ChatPreview onClose={() => setIsChatOpen(false)} />
         </div>
-      </div>
+      )}
     </>
   );
+
+
 };
 
 export default Diagram;
