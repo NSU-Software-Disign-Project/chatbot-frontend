@@ -55,7 +55,7 @@ export const createOptionsBlock = (diagram) => {
             defaultAlignment: go.Spot.Left,
             stretch: go.GraphObject.Horizontal,
           },
-          new go.Binding("itemArray", "outputsConds").makeTwoWay(),
+          new go.Binding("itemArray", "options").makeTwoWay(),
           {
             itemTemplate: $(
               go.Panel,
@@ -108,12 +108,12 @@ export const createOptionsBlock = (diagram) => {
 
               model.startTransaction("Добавить опцию");
 
-              const outputsConds = node.data.outputsConds || [];
-              const newPortId = `OUT${outputsConds.length}`;
-              const newCondition = { text: `Options ${outputsConds.length + 1}`, portId: newPortId };
+              const options = node.data.options || [];
+              const newPortId = `OUT${options.length}`;
+              const newCondition = { text: `Options ${options.length + 1}`, portId: newPortId };
 
               // Добавляем новое условие
-              model.setDataProperty(node.data, "outputsConds", [...outputsConds, newCondition]);
+              model.setDataProperty(node.data, "options", [...options, newCondition]);
 
               model.commitTransaction("Добавить опцию");
             },
@@ -129,10 +129,10 @@ export const createOptionsBlock = (diagram) => {
 
               model.startTransaction("Убрать опцию");
 
-              const outputsConds = node.data.outputsConds || [];
-              if (outputsConds.length > 1) {
-                outputsConds.pop();
-                model.setDataProperty(node.data, "outputsConds", [...outputsConds]);
+              const options = node.data.options || [];
+              if (options.length > 1) {
+                options.pop();
+                model.setDataProperty(node.data, "options", [...options]);
               }
 
               model.commitTransaction("Убрать опцию");

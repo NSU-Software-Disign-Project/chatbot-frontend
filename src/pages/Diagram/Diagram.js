@@ -142,7 +142,6 @@ const Diagram = () => {
         {
           key: 3,
           category: "optionsBlock",
-          additionalTexts:[{"text":"Default Option"}] ,
         },
         {
           key: 4,
@@ -185,7 +184,6 @@ const Diagram = () => {
       {
         key: 3,
         category: "optionsBlock",
-        additionalTexts: [{ text: "Default Option" }] ,
       },
       {
         key: 4,
