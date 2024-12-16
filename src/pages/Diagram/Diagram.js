@@ -7,7 +7,6 @@ import {createOptionsBlock} from "./Blocks/optionsBlock";
 import createPort from "./Blocks/createPort";
 import {createDiagram} from "./Blocks/diagram";
 import ChatPreview from "../Messenger/ChatPreview";
-import serverStart from "../Messenger/webSocket";
 
 
 const Diagram = () => {
@@ -136,14 +135,14 @@ const Diagram = () => {
         {
           key: 2,
           category: "conditionalBlock",
-          value: "valueName",
+          value: "variableName",
           inputs: [{ portId: "IN1" }],
-          outputs: [{ portId: "OUT1" }, { portId: "OUT2" }],
+          outputsConds:[{"":"","portId":"OUT"}]
         },
         {
           key: 3,
           category: "optionsBlock",
-          additionalTexts: [{ text: "Default Option" }] ,
+          additionalTexts:[{"text":"Default Option"}] ,
         },
         {
           key: 4,
@@ -181,7 +180,7 @@ const Diagram = () => {
         category: "conditionalBlock",
         value: "variableName",
         inputs: [{ portId: "IN1" }],
-        outputs: [{ portId: "OUT1" }, { portId: "OUT2" }],
+        outputsConds:[{"":"","portId":"OUT"}]
       },
       {
         key: 3,

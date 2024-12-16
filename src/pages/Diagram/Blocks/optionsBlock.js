@@ -130,7 +130,7 @@ export const createOptionsBlock = (diagram) => {
               model.startTransaction("Убрать опцию");
 
               const outputsConds = node.data.outputsConds || [];
-              if (outputsConds.length > 0) {
+              if (outputsConds.length > 1) {
                 outputsConds.pop();
                 model.setDataProperty(node.data, "outputsConds", [...outputsConds]);
               }
