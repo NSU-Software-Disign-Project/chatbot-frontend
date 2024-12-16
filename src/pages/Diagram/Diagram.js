@@ -9,8 +9,6 @@ import {createDiagram} from "./Blocks/diagram";
 import { 
   saveDiagramServer, 
   loadDiagramServer, 
-  transformToServerFormat, 
-  transformToGoJSFormat,
   saveDiagramLocally,
   loadDiagramLocally
 } from "./SaveLoad";
@@ -149,90 +147,45 @@ const Diagram = () => {
       palette.div = null;
     };
   }, []);
+
+  const buttonStyle = {
+    marginRight: '10px',
+    backgroundColor: 'rgb(30,30,30)',
+    color: '#fff',
+    border: 'none',
+    padding: '10px',
+    borderRadius: '5px',
+    cursor: 'pointer',
+    fontWeight: 'bold',
+    boxShadow: '0 2px 10px rgba(0, 0, 0, 0.3)',
+    transition: 'background-color 0.3s ease',
+  };
+
   return (
     <>
       <button
-        onClick={saveDiagramLocally}
-        style={{
-          marginRight: "10px",
-          backgroundColor: 'rgb(30,30,30)',
-          color: '#fff',
-          border: 'none',
-          padding: '10px',
-          borderRadius: '5px',
-          cursor: 'pointer',
-          fontWeight: 'bold',
-          boxShadow: '0 2px 10px rgba(0, 0, 0, 0.3)',
-          transition: 'background-color 0.3s ease',
-        }}
+        onClick={() => saveDiagramLocally(diagramRefObject)}
+        style={buttonStyle}
       >
         Сохранить диаграмму локально
       </button>
       <button
-        onClick={loadDiagramLocally}
-        style={{
-          backgroundColor: 'rgb(30,30,30)',
-          color: '#fff',
-          border: 'none',
-          padding: '10px',
-          borderRadius: '5px',
-          cursor: 'pointer',
-          fontWeight: 'bold',
-          boxShadow: '0 2px 10px rgba(0, 0, 0, 0.3)',
-          transition: 'background-color 0.3s ease',
-        }}
+        onClick={() => loadDiagramLocally(diagramRefObject)}
+        style={buttonStyle}
       >
-        Загрузить диаграмму из локального файла
+        Загрузить диаграмму из локального файла
       </button>
       <button
-        onClick={saveDiagramServer}
-        style={{
-          marginRight: "10px",
-          backgroundColor: 'rgb(30,30,30)',
-          color: '#fff',
-          border: 'none',
-          padding: '10px',
-          borderRadius: '5px',
-          cursor: 'pointer',
-          fontWeight: 'bold',
-          boxShadow: '0 2px 10px rgba(0, 0, 0, 0.3)',
-          transition: 'background-color 0.3s ease',
-        }}
+        onClick={() => saveDiagramServer(diagramRefObject)}
+        style={buttonStyle}
       >
         Сохранить диаграмму на сервер
       </button>
       <button
-        onClick={loadDiagramServer}
-        style={{
-          marginRight: "10px",
-          backgroundColor: 'rgb(30,30,30)',
-          color: '#fff',
-          border: 'none',
-          padding: '10px',
-          borderRadius: '5px',
-          cursor: 'pointer',
-          fontWeight: 'bold',
-          boxShadow: '0 2px 10px rgba(0, 0, 0, 0.3)',
-          transition: 'background-color 0.3s ease',
-        }}
+        onClick={() => loadDiagramServer(diagramRefObject)}
+        style={buttonStyle}
       >
-        Выгрузить диаграмму с сервера
-      </button>
-      <button
-        // onClick={}
-        style={{
-          backgroundColor: 'rgb(30,30,30)',
-          color: '#fff',
-          border: 'none',
-          padding: '10px',
-          borderRadius: '5px',
-          cursor: 'pointer',
-          fontWeight: 'bold',
-          boxShadow: '0 2px 10px rgba(0, 0, 0, 0.3)',
-          transition: 'background-color 0.3s ease',
-        }}
-      >
-        Запустить бота
+        Загрузить диаграмму с сервера
       </button>
       <div style={{display: 'flex', gap: '0px', height: '100vh'}}>
         <div

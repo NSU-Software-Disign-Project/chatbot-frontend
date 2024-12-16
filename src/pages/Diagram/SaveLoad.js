@@ -1,5 +1,6 @@
+import * as go from 'gojs';
 
-function saveDiagramLocally() {
+function saveDiagramLocally(diagramRefObject) {
     const diagram = diagramRefObject.current;
     if (!diagram) {
       alert("Диаграмма не инициализирована.");
@@ -19,7 +20,7 @@ function saveDiagramLocally() {
   }
 
 
-function loadDiagramLocally() {
+function loadDiagramLocally(diagramRefObject) {
     const fileInput = document.createElement("input");
     fileInput.type = "file";
     fileInput.accept = "application/json";
@@ -166,7 +167,7 @@ function transformToGoJSFormat(data) {
     return { nodeDataArray, linkDataArray };
 }
 
-function saveDiagramServer() {
+function saveDiagramServer(diagramRefObject) {
     const diagram = diagramRefObject.current;
     if (!diagram) {
       alert("Диаграмма не инициализирована.");
@@ -194,25 +195,25 @@ function saveDiagramServer() {
       });
   }
 
-  function loadDiagramServer() {
+function loadDiagramServer(diagramRefObject) {
     fetch('/api/loadDiagram')
-      .then((response) => response.json())
-      .then((data) => {
-        const diagram = diagramRefObject.current;
-        if (!diagram) {
-          alert("Диаграмма не инициализирована.");
-          return;
-        }
+        .then((response) => response.json())
+        .then((data) => {
+            const diagram = diagramRefObject.current;
+            if (!diagram) {
+                alert("Диаграмма не инициализирована.");
+                return;
+            }
   
         // Преобразуем данные в формат, который понимает GoJS
         const transformedData = transformToGoJSFormat(data);
   
         diagram.model = go.Model.fromJson(transformedData);
-      })
-      .catch((error) => {
-        console.error("Ошибка при загрузке диаграммы:", error);
-        alert("Ошибка при загрузке диаграммы.");
-      });
+        })
+        .catch((error) => {
+            console.error("Ошибка при загрузке диаграммы:", error);
+            alert("Ошибка при загрузке диаграммы.");
+        });
   }
 
 
