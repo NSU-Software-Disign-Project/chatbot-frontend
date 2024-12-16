@@ -12,7 +12,7 @@ const Diagram = () => {
   const paletteRef = useRef(null);
   const diagramRefObject = useRef(null);
 
-  function saveDiagram() {
+  function saveDiagramLocally() {
     const diagram = diagramRefObject.current;
     if (!diagram) {
       alert("Диаграмма не инициализирована.");
@@ -32,7 +32,7 @@ const Diagram = () => {
   }
 
 
-  function loadDiagram() {
+  function loadDiagramLocally() {
     const fileInput = document.createElement("input");
     fileInput.type = "file";
     fileInput.accept = "application/json";
@@ -196,7 +196,7 @@ const Diagram = () => {
   return (
     <>
       <button
-        onClick={saveDiagram}
+        onClick={saveDiagramLocally}
         style={{
           marginRight: "10px",
           backgroundColor: 'rgb(30,30,30)',
@@ -210,10 +210,10 @@ const Diagram = () => {
           transition: 'background-color 0.3s ease',
         }}
       >
-        Сохранить диаграмму
+        Сохранить диаграмму локально
       </button>
       <button
-        onClick={loadDiagram}
+        onClick={loadDiagramLocally}
         style={{
           backgroundColor: 'rgb(30,30,30)',
           color: '#fff',
@@ -226,7 +226,41 @@ const Diagram = () => {
           transition: 'background-color 0.3s ease',
         }}
       >
-        Загрузить диаграмму
+        Загрузить диаграмму из локального файла
+      </button>
+      <button
+        // onClick={saveDiagramServer}
+        style={{
+          marginRight: "10px",
+          backgroundColor: 'rgb(30,30,30)',
+          color: '#fff',
+          border: 'none',
+          padding: '10px',
+          borderRadius: '5px',
+          cursor: 'pointer',
+          fontWeight: 'bold',
+          boxShadow: '0 2px 10px rgba(0, 0, 0, 0.3)',
+          transition: 'background-color 0.3s ease',
+        }}
+      >
+        Сохранить диаграмму на сервер
+      </button>
+      <button
+        // onClick={loadDiagramServer}
+        style={{
+          marginRight: "10px",
+          backgroundColor: 'rgb(30,30,30)',
+          color: '#fff',
+          border: 'none',
+          padding: '10px',
+          borderRadius: '5px',
+          cursor: 'pointer',
+          fontWeight: 'bold',
+          boxShadow: '0 2px 10px rgba(0, 0, 0, 0.3)',
+          transition: 'background-color 0.3s ease',
+        }}
+      >
+        Выгрузить диаграмму с сервера
       </button>
       <button
         // onClick={}
