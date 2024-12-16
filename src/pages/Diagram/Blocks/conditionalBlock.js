@@ -41,12 +41,12 @@ export const createConditionalBlock = (diagram) => {
             createPort("IN", go.Spot.Left, true, "red")
           ),
             $(go.TextBlock,
-              {column: 1, row: 0, editable: true, isMultiline: false, alignment: go.Spot.Center,
+              {column: 1, row: 0, editable: false, isMultiline: false, alignment: go.Spot.Center,
                 font: "bold 10pt sans-serif", margin: new go.Margin(0, 0, 4, 4), stroke:"rgba(204, 255, 209, 0)", text: "Conditional", },
             ),
-          new go.Panel("Horizontal", { column: 2, row: 0 }).add(
-            createPort("OUT", go.Spot.Right, false, "red")
-          ),
+          // new go.Panel("Horizontal", { column: 2, row: 0 }).add(
+          //   createPort("OUT", go.Spot.Right, false, "red"),
+          // ),
         ),
 
         $(
@@ -124,7 +124,6 @@ export const createConditionalBlock = (diagram) => {
               const newPortId = `OUT${outputsConds.length}`;
               const newCondition = { text: `Condition ${outputsConds.length + 1}`, portId: newPortId };
 
-              // Добавляем новое условие
               model.setDataProperty(node.data, "outputsConds", [...outputsConds, newCondition]);
 
               model.commitTransaction("Добавить условие");
@@ -142,7 +141,7 @@ export const createConditionalBlock = (diagram) => {
               model.startTransaction("Убрать условие");
 
               const outputsConds = node.data.outputsConds || [];
-              if (outputsConds.length > 0) {
+              if (outputsConds.length > 1) {
                 outputsConds.pop();
                 model.setDataProperty(node.data, "outputsConds", [...outputsConds]);
               }
