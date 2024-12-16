@@ -6,63 +6,19 @@ import {createConditionalBlock} from "./Blocks/conditionalBlock";
 import {createOptionsBlock} from "./Blocks/optionsBlock";
 import createPort from "./Blocks/createPort";
 import {createDiagram} from "./Blocks/diagram";
+import { 
+  saveDiagramServer, 
+  loadDiagramServer, 
+  transformToServerFormat, 
+  transformToGoJSFormat,
+  saveDiagramLocally,
+  loadDiagramLocally
+} from "./SaveLoad";
 
 const Diagram = () => {
   const diagramRef = useRef(null);
   const paletteRef = useRef(null);
   const diagramRefObject = useRef(null);
-
-  function saveDiagramLocally() {
-    const diagram = diagramRefObject.current;
-    if (!diagram) {
-      alert("Диаграмма не инициализирована.");
-      return;
-    }
-
-    const json = diagram.model.toJson();
-    const blob = new Blob([json], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "diagram.json";
-    a.click();
-
-    URL.revokeObjectURL(url);
-  }
-
-
-  function loadDiagramLocally() {
-    const fileInput = document.createElement("input");
-    fileInput.type = "file";
-    fileInput.accept = "application/json";
-
-    fileInput.onchange = (event) => {
-      const file = event.target.files[0];
-      if (!file) return;
-
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const json = e.target.result;
-        try {
-          const parsedData = JSON.parse(json);
-          const diagram = diagramRefObject.current;
-
-          if (parsedData && parsedData.nodeDataArray && parsedData.linkDataArray) {
-            diagram.model = go.Model.fromJson(parsedData);
-          } else {
-            alert("Некорректный формат данных файла.");
-          }
-        } catch (error) {
-          alert("Ошибка при чтении файла: " + error.message);
-        }
-      };
-
-      reader.readAsText(file);
-    };
-
-    fileInput.click();
-  }
 
   useEffect(() => {
     const $ = go.GraphObject.make;
@@ -229,7 +185,7 @@ const Diagram = () => {
         Загрузить диаграмму из локального файла
       </button>
       <button
-        // onClick={saveDiagramServer}
+        onClick={saveDiagramServer}
         style={{
           marginRight: "10px",
           backgroundColor: 'rgb(30,30,30)',
@@ -246,7 +202,7 @@ const Diagram = () => {
         Сохранить диаграмму на сервер
       </button>
       <button
-        // onClick={loadDiagramServer}
+        onClick={loadDiagramServer}
         style={{
           marginRight: "10px",
           backgroundColor: 'rgb(30,30,30)',
