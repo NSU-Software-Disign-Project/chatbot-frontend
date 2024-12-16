@@ -23,7 +23,17 @@ const Diagram = () => {
       return;
     }
 
-    const json = diagram.model.toJson();
+    const model = diagram.model.toJson();
+    const parsedModel = JSON.parse(model);
+
+    parsedModel.linkDataArray = parsedModel.linkDataArray.map(link => {
+      const { points, ...rest } = link; // Убираем points
+      return rest;
+    });
+
+    // Преобразуем обратно в JSON строку
+    const json = JSON.stringify(parsedModel, null, 2); // Для читаемого формата добавлен отступ
+
     const blob = new Blob([json], { type: "application/json" });
     const url = URL.createObjectURL(blob);
 
@@ -34,6 +44,7 @@ const Diagram = () => {
 
     URL.revokeObjectURL(url);
   }
+
 
 
   function loadDiagram() {
