@@ -136,7 +136,6 @@ const Diagram = () => {
           key: 2,
           category: "conditionalBlock",
           value: "variableName",
-          inputs: [{ portId: "IN1" }],
           outputsConds:[{"":"","portId":"OUT"}]
         },
         {
@@ -147,7 +146,6 @@ const Diagram = () => {
           key: 4,
           category: "saveBlock",
           name: "name",
-          value: "value",
         },
       ],
       linkDataArray: [],
@@ -178,7 +176,6 @@ const Diagram = () => {
         key: 2,
         category: "conditionalBlock",
         value: "variableName",
-        inputs: [{ portId: "IN1" }],
         outputsConds:[{"":"","portId":"OUT"}]
       },
       {
@@ -189,7 +186,6 @@ const Diagram = () => {
         key: 4,
         category: "saveBlock",
         name: "name",
-        value: "value",
       },
     ]);
     diagramRefObject.current = diagram;
