@@ -41,7 +41,7 @@ export const createConditionalBlock = (diagram) => {
             createPort("IN", go.Spot.Left, true, "red")
           ),
             $(go.TextBlock,
-              {column: 1, row: 0, editable: true, isMultiline: false, alignment: go.Spot.Center,
+              {column: 1, row: 0, editable: false, isMultiline: false, alignment: go.Spot.Center,
                 font: "bold 10pt sans-serif", margin: new go.Margin(0, 0, 4, 4), stroke:"rgba(204, 255, 209, 0)", text: "Conditional", },
             ),
           // new go.Panel("Horizontal", { column: 2, row: 0 }).add(
