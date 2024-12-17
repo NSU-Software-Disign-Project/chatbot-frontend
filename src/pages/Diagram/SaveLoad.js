@@ -104,7 +104,10 @@ function validateCondition(conditionText) {
     const nodeDataArray = data.nodeDataArray.map((node) => {
       if (node.category === "conditionalBlock") {
         // Преобразуем outputsConds в conditions
-        const conditions = node.outputsConds.map((cond, index) => {
+        const conditions 
+        = !node.outputsConds || node.outputsConds.length < 1 
+        ? [] 
+        : node.outputsConds.map((cond, index) => {
           const { text, portId } = cond;
           const [operator, conditionValue] = validateCondition(text);
           return {
@@ -124,7 +127,9 @@ function validateCondition(conditionText) {
         };
       } else if (node.category === "optionsBlock") {
         // Преобразуем options в choises
-        const choises = node.options.map((option, index) => ({
+        const choises = !node.options || node.options.length < 1 
+        ? []
+        : node.options.map((option, index) => ({
           choiseId: index,
           text: option.text,
           portId: option.portId,
