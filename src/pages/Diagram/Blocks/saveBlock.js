@@ -14,19 +14,13 @@ const saveBlock =$(
     .addColumnDefinition(2, { alignment: go.Spot.Right })
     .add(
       new go.TextBlock(
-        { column: 0, row: 0, columnSpan: 4, alignment: go.Spot.Center,
+        { column: 0, row: 0, columnSpan: 3, alignment: go.Spot.Center,
           text: "Save Block",
           font: "bold 8pt sans-serif", margin: new go.Margin(4, 2) , stroke:"rgba(204, 255, 209, 1)"}),
       $(go.TextBlock,
         {column: 1, row: 1, editable: true, isMultiline: false, alignment: go.Spot.Center,
-          font: "bold 10pt sans-serif", margin: new go.Margin(2, 2), stroke:"rgba(204, 255, 209, 1)" },
+          font: "bold 10pt sans-serif", margin: new go.Margin(2, 18), stroke:"rgba(204, 255, 209, 1)" },
         new go.Binding("text", "name").makeTwoWay(),
-      ),
-
-      $(go.TextBlock,
-        {column: 1, row: 2, editable: true, isMultiline: false, alignment: go.Spot.Center,
-          font: "bold 10pt sans-serif", margin: new go.Margin(2, 2), stroke:"rgba(204, 255, 209, 1)" },
-        new go.Binding("text", "value").makeTwoWay(),
       ),
       new go.Panel("Horizontal", { column: 0, row: 1 }).add(
         createPort("IN", go.Spot.Left, true, "rgba(67, 255, 86, 1)")
