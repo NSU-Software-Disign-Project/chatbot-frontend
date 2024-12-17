@@ -30,7 +30,8 @@ function saveDiagramLocally(diagramRefObject) {
   }
 
 
-function loadDiagramLocally(diagramRefObject) {
+
+  function loadDiagramLocally(diagramRefObject) {
     const fileInput = document.createElement("input");
     fileInput.type = "file";
     fileInput.accept = "application/json";
@@ -60,7 +61,7 @@ function loadDiagramLocally(diagramRefObject) {
     };
 
     fileInput.click();
-}
+  }
 
 function validateCondition(conditionText) {
     if (!conditionText) {
