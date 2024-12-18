@@ -1,50 +1,99 @@
 import React, { useEffect, useState } from "react";
-// import serverStart from "../Messenger/webSocket";
+import { io } from "socket.io-client";
 
 const ChatPreview = ({ onClose }) => {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
+  const [socket, setSocket] = useState(null);
 
-  // useEffect(() => {
-  //   const port = 3000;
-  //
-  //   // Этот коллбэк будет вызываться при получении сообщения от сервера
-  //   const handleNewMessage = (newMessage) => {
-  //     console.log("Получено новое сообщение от сервера:", newMessage);
-  //     setMessages((prevMessages) => {
-  //       const updatedMessages = [...prevMessages, { sender: "server", text: newMessage }];
-  //       console.log("Обновленное состояние сообщений:", updatedMessages);
-  //       return updatedMessages;
-  //     });
-  //   };
-  //
-  //   console.log("Передаю handleNewMessage в serverStart"); // Лог для проверки
-  //   // const socket = serverStart(port, handleNewMessage);
-  //
-  //   // Проверка, что socket передан
-  //   console.log("socket:", socket);
-  //
-  //   return () => {
-  //     socket.disconnect();
-  //   };
-  // }, []);
+  useEffect(() => {
+    console.log("Чат открывается, пытаемся подключиться к WebSocket...");
+
+    const newSocket = io("http://localhost:8080", {
+      transports: ["websocket"], // Используем WebSocket
+      reconnectionAttempts: 3, // Пробуем подключиться 3 раза
+      timeout: 10000, // Таймаут на подключение 10 секунд
+    });
+
+    setSocket(newSocket);
+
+    newSocket.on("connect", () => {
+      console.log("Подключение установлено к серверу WebSocket!");
+    });
+
+    newSocket.on("connect_error", (err) => {
+      console.error("Ошибка при подключении WebSocket:", err);
+    });
+
+    newSocket.on("connect_timeout", () => {
+      console.error("Таймаут подключения WebSocket!");
+    });
+
+    // Логирование получения истории сообщений
+    newSocket.on("start", (initialMessages) => {
+      console.log("Получена история сообщений с сервера:", initialMessages);
+      setMessages(initialMessages);
+    });
+
+    // Логирование получения нового сообщения от сервера
+    newSocket.on("message", (newMessage) => {
+      console.log("Получено новое сообщение от сервера:", newMessage);
+      setMessages((prevMessages) => [
+        ...prevMessages,
+        { sender: "server", text: newMessage },
+      ]);
+    });
+
+    newSocket.on("error", (err) => {
+      console.error("Ошибка WebSocket:", err);
+    });
+
+    newSocket.on("disconnect", () => {
+      console.log("Соединение WebSocket было закрыто.");
+    });
+
+    newSocket.on("reconnect", (attemptNumber) => {
+      console.log(`Попытка №${attemptNumber} переподключиться к WebSocket...`);
+    });
+
+    newSocket.on("reconnect_error", (err) => {
+      console.error("Ошибка при переподключении WebSocket:", err);
+    });
+
+    newSocket.on("reconnect_failed", () => {
+      console.error("Не удалось переподключиться к WebSocket.");
+    });
+
+    return () => {
+      console.log("Закрываем соединение WebSocket...");
+      newSocket.disconnect();
+    };
+  }, []);
 
   const handleSendMessage = () => {
-    if (input.trim() === "") return;
+    if (input.trim() === "") {
+      console.warn("Пустое сообщение не будет отправлено.");
+      return;
+    }
 
     const userMessage = { sender: "user", text: input.trim() };
-    setMessages((prevMessages) => {
-      const updatedMessages = [...prevMessages, userMessage];
-      console.log("Обновленное состояние сообщений после отправки:", updatedMessages);
-      return updatedMessages;
-    });
+    setMessages((prevMessages) => [...prevMessages, userMessage]);
+
+    if (socket) {
+      console.log("Отправляем сообщение на сервер:", input.trim());
+      socket.emit("message", input.trim(), (response) => {
+        if (response) {
+          console.log("Сервер подтвердил получение сообщения:", response);
+        } else {
+          console.warn("Сервер не подтвердил получение сообщения.");
+        }
+      });
+    } else {
+      console.warn("Соединение WebSocket ещё не установлено.");
+    }
+
     setInput("");
   };
-
-  // Для отслеживания изменений в сообщениях
-  useEffect(() => {
-    console.log("Состояние сообщений изменилось:", messages);
-  }, [messages]);
 
   return (
     <div
@@ -61,7 +110,6 @@ const ChatPreview = ({ onClose }) => {
         boxShadow: "-2px 0 10px rgba(0, 0, 0, 0.5)",
       }}
     >
-      {/* Список сообщений */}
       <div
         style={{
           flexGrow: 1,
@@ -86,8 +134,8 @@ const ChatPreview = ({ onClose }) => {
                   msg.sender === "user"
                     ? "rgb(70, 70, 255)"
                     : msg.sender === "server"
-                      ? "rgb(70, 255, 70)"
-                      : "rgb(50, 50, 50)",
+                    ? "rgb(70, 255, 70)"
+                    : "rgb(50, 50, 50)",
               }}
             >
               {msg.text}
@@ -96,7 +144,6 @@ const ChatPreview = ({ onClose }) => {
         ))}
       </div>
 
-      {/* Поле ввода */}
       <div
         style={{
           display: "flex",
@@ -134,7 +181,6 @@ const ChatPreview = ({ onClose }) => {
         </button>
       </div>
 
-      {/* Кнопка закрытия */}
       <button
         onClick={onClose}
         style={{
