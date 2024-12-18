@@ -1,25 +1,34 @@
 import { io } from "socket.io-client";
 
 class SocketService {
-  constructor() {
-    this.socket = null;
-  }
+    constructor() {
+        this.socket = null;
+        this.isConnected = false;
+        this.reconnectAttempts = 0;
+        this.maxReconnectAttempts = 3;
+    }
 
   // Установить соединение
-  connect() {
-    if (!this.socket) {
-      this.socket = io(process.env.REACT_APP_BACKEND_ADDR || "http://localhost:8888");
-      console.log("WebSocket подключен");
+  connect(url = process.env.REACT_APP_BACKEND_ADDR || "http://localhost:8888") {
+    if (this.socket) {
+        console.warn("WebSocket уже подключен");
+        return;
+      }
+  
+    this.socket = io(url, {
+        reconnectionAttempts: this.maxReconnectAttempts,
+        timeout: 5000,
+    });
+    console.log("WebSocket создан");
 
-      // Пример обработки события от сервера
-      this.socket.on("connect", () => {
+    // Пример обработки события от сервера
+    this.socket.on("connect", () => {
         console.log("Соединение установлено с сервером");
-      });
+    });
 
-      this.socket.on("disconnect", () => {
+    this.socket.on("disconnect", () => {
         console.log("Соединение разорвано");
-      });
-    }
+    });
   }
 
   // Отправить сообщение "start" при открытии чата

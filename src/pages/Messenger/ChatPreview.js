@@ -75,7 +75,7 @@ const ChatPreview = ({ onClose }) => {
                   msg.sender === "user"
                     ? "rgb(70, 70, 255)"
                     : msg.sender === "server"
-                      ? "rgb(70, 255, 70)"
+                      ? "rgb(28, 110, 28)"
                       : "rgb(50, 50, 50)",
               }}
             >
