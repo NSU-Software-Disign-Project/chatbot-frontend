@@ -132,10 +132,14 @@ const ChatPreview = ({ onClose }) => {
                 borderRadius: "10px",
                 background:
                   msg.sender === "user"
-                    ? "rgb(70, 70, 255)"
-                    : msg.sender === "server"
-                    ? "rgb(70, 255, 70)"
-                    : "rgb(50, 50, 50)",
+                  ? "rgb(70, 70, 255)" // Синий для пользователя
+                  : msg.sender === "server" || msg.sender === "bot"
+                  ? "#fff" // Белый фон для сервера и бота
+                  : "rgb(50, 50, 50)", // Серый для остальных
+                color:
+                  msg.sender === "server" || msg.sender === "bot"
+                  ? "#000" // Чёрный текст для сервера и бота
+                  : "#fff", // Белый текст для остальных
               }}
             >
               {msg.text}
