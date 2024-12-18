@@ -1,50 +1,39 @@
 import React, { useEffect, useState } from "react";
-// import serverStart from "../Messenger/webSocket";
+import socketService from "./socketService";
 
 const ChatPreview = ({ onClose }) => {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
 
-  // useEffect(() => {
-  //   const port = 3000;
-  //
-  //   // Этот коллбэк будет вызываться при получении сообщения от сервера
-  //   const handleNewMessage = (newMessage) => {
-  //     console.log("Получено новое сообщение от сервера:", newMessage);
-  //     setMessages((prevMessages) => {
-  //       const updatedMessages = [...prevMessages, { sender: "server", text: newMessage }];
-  //       console.log("Обновленное состояние сообщений:", updatedMessages);
-  //       return updatedMessages;
-  //     });
-  //   };
-  //
-  //   console.log("Передаю handleNewMessage в serverStart"); // Лог для проверки
-  //   // const socket = serverStart(port, handleNewMessage);
-  //
-  //   // Проверка, что socket передан
-  //   console.log("socket:", socket);
-  //
-  //   return () => {
-  //     socket.disconnect();
-  //   };
-  // }, []);
+  // Установить соединение при открытии чата
+  useEffect(() => {
+    socketService.connect();
+    socketService.startBot();
+    console.log("Bot started");
 
+    // Обработчик входящих сообщений
+    socketService.onMessage((message) => {
+      const serverMessage = { sender: "server", text: message };
+      setMessages((prevMessages) => [...prevMessages, serverMessage]);
+    });
+
+    // Очистить соединение при закрытии
+    return () => {
+      socketService.disconnect();
+      console.log("Bot stopped");
+    };
+  }, []);
+
+  // Отправить сообщение
   const handleSendMessage = () => {
     if (input.trim() === "") return;
 
     const userMessage = { sender: "user", text: input.trim() };
-    setMessages((prevMessages) => {
-      const updatedMessages = [...prevMessages, userMessage];
-      console.log("Обновленное состояние сообщений после отправки:", updatedMessages);
-      return updatedMessages;
-    });
+    setMessages((prevMessages) => [...prevMessages, userMessage]);
+
+    socketService.sendMessage(input.trim()); // Отправка сообщения на сервер
     setInput("");
   };
-
-  // Для отслеживания изменений в сообщениях
-  useEffect(() => {
-    console.log("Состояние сообщений изменилось:", messages);
-  }, [messages]);
 
   return (
     <div
