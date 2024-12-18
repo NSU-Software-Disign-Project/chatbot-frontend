@@ -1,22 +1,31 @@
-import { io } from "socket.io-client";
+// Подключение Socket.IO
+const socket = io("http://localhost:8080"); // Укажите ваш порт, если он отличается
 
-const socket = io("http://localhost:8080");
+// WebSocket логика
+const webSocket = {
+    init(chatPreview) {
+        socket.on("connect", () => {
+            console.log("Соединение установлено с сервером, ID:", socket.id);
+            socket.emit("start");
+        });
 
-// Получение сообщений от сервера
-socket.on("message", (data) => {
-  console.log("Получено сообщение от сервера:", data);
-});
+        socket.on("message", (message) => {
+            console.log("Новое сообщение от сервера:", message);
+            chatPreview.displayMessage("Сервер", message);
+        });
 
-// Получение запроса ввода
-// socket.on("input", (prompt) => {
-//   const userInput = promptUser(prompt); // Ваш способ получения ввода, например prompt()
-//   socket.emit("response", userInput);
-// });
+        socket.on("error", (err) => {
+            console.error("Ошибка на клиенте:", err);
+        });
 
-// Запуск чата
-socket.emit("start");
+        socket.on("disconnect", () => {
+            console.log("Соединение с сервером разорвано.");
+        });
+    },
 
-// Обработка ошибок
-socket.on("error", (err) => {
-  console.error("Ошибка:", err);
-});
+    sendMessage(message) {
+        socket.emit("input", message);
+    }
+};
+
+export default webSocket;
