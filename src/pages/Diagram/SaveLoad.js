@@ -199,7 +199,9 @@ function transformToGoJSFormat(raw) {
     };
 }
 
-const backendAddr = process.env.REACT_APP_BACKEND_ADDR;
+const backendAddr = process.env.REACT_APP_ENV === 'production' 
+    ? process.env.REACT_APP_BACKEND_CONTAINER 
+    : process.env.REACT_APP_BACKEND_ADDR;
 
 function saveDiagramServer(diagramRefObject, projectName) {
     const diagram = diagramRefObject.current;

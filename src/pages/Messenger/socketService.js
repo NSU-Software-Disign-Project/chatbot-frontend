@@ -1,5 +1,9 @@
 import { io } from "socket.io-client";
 
+const backendAddr = process.env.REACT_APP_ENV === 'production' 
+    ? process.env.REACT_APP_BACKEND_CONTAINER 
+    : process.env.REACT_APP_BACKEND_ADDR;
+
 class SocketService {
     constructor() {
         this.socket = null;
@@ -9,7 +13,7 @@ class SocketService {
     }
 
   // Установить соединение
-  connect(url = process.env.REACT_APP_BACKEND_ADDR || "http://localhost:8080") {
+  connect(url = backendAddr) {
     if (this.socket) {
         console.warn("WebSocket уже подключен");
         return;
