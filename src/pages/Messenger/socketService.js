@@ -9,7 +9,7 @@ class SocketService {
     }
 
   // Установить соединение
-  connect(url = process.env.REACT_APP_BACKEND_ADDR || "http://localhost:8888") {
+  connect(url = process.env.REACT_APP_BACKEND_ADDR || "http://localhost:8080") {
     if (this.socket) {
         console.warn("WebSocket уже подключен");
         return;
@@ -32,10 +32,10 @@ class SocketService {
   }
 
   // Отправить сообщение "start" при открытии чата
-  startBot() {
+  startBot(projectName) {
     if (this.socket) {
-      this.socket.emit("start");
-      console.log("Сообщение 'start' отправлено на сервер");
+      this.socket.emit("start", projectName);
+      console.log(`Сообщение 'start' с projectName '${projectName}' отправлено на сервер`);
     }
   }
 
@@ -54,6 +54,24 @@ class SocketService {
         console.log("Получено сообщение от сервера:", message);
         callback(message);
       });
+    }
+  }
+
+  // Обработчик запроса ввода
+  onRequestInput(callback) {
+    if (this.socket) {
+      this.socket.on("requestInput", (prompt) => {
+        console.log("Запрос ввода от сервера:", prompt);
+        callback(prompt);
+      });
+    }
+  }
+
+  // Отправить ответ на запрос ввода
+  sendInputResponse(input) {
+    if (this.socket) {
+      this.socket.emit("inputResponse", input);
+      console.log("Ответ на запрос ввода отправлен:", input);
     }
   }
 

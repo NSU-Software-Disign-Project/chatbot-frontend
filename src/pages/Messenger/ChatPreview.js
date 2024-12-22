@@ -4,17 +4,25 @@ import socketService from "./socketService";
 const ChatPreview = ({ onClose }) => {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
+  const [inputRequest, setInputRequest] = useState(null);
 
   // Установить соединение при открытии чата
   useEffect(() => {
     socketService.connect();
-    socketService.startBot();
+    socketService.startBot("undefined");
     console.log("Bot started");
 
     // Обработчик входящих сообщений
     socketService.onMessage((message) => {
       const serverMessage = { sender: "server", text: message };
       setMessages((prevMessages) => [...prevMessages, serverMessage]);
+    });
+
+    // Обработчик запроса ввода
+    socketService.onRequestInput((prompt) => {
+      const serverMessage = { sender: "server", text: prompt };
+      setMessages((prevMessages) => [...prevMessages, serverMessage]);
+      setInputRequest(prompt);
     });
 
     // Очистить соединение при закрытии
@@ -31,7 +39,13 @@ const ChatPreview = ({ onClose }) => {
     const userMessage = { sender: "user", text: input.trim() };
     setMessages((prevMessages) => [...prevMessages, userMessage]);
 
-    socketService.sendMessage(input.trim()); // Отправка сообщения на сервер
+    if (inputRequest) {
+      socketService.sendInputResponse(input.trim()); // Отправка ответа на запрос ввода
+      setInputRequest(null);
+    } else {
+      socketService.sendMessage(input.trim()); // Отправка сообщения на сервер
+    }
+
     setInput("");
   };
 

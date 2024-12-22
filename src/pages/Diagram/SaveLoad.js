@@ -178,7 +178,9 @@ function transformToGoJSFormat(data) {
     return { nodeDataArray, linkDataArray };
 }
 
-function saveDiagramServer(diagramRefObject) {
+const backendAddr = process.env.REACT_APP_BACKEND_ADDR;
+
+function saveDiagramServer(diagramRefObject, projectName) {
     const diagram = diagramRefObject.current;
     if (!diagram) {
       alert("Диаграмма не инициализирована.");
@@ -189,7 +191,7 @@ function saveDiagramServer(diagramRefObject) {
     const transformedData = transformToServerFormat(JSON.parse(json));
   
     // Отправляем transformedData на сервер
-    fetch('/api/saveDiagram', {
+    fetch(`${backendAddr}/api/project/${projectName}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -206,8 +208,8 @@ function saveDiagramServer(diagramRefObject) {
       });
   }
 
-function loadDiagramServer(diagramRefObject) {
-    fetch('/api/loadDiagram')
+function loadDiagramServer(diagramRefObject, projectName) {
+    fetch(`${backendAddr}/api/project/${projectName}`)
         .then((response) => response.json())
         .then((data) => {
             const diagram = diagramRefObject.current;
@@ -227,10 +229,41 @@ function loadDiagramServer(diagramRefObject) {
         });
   }
 
+function deleteDiagramServer(projectName) {
+    fetch(`${backendAddr}/api/project/${projectName}`, {
+        method: 'DELETE',
+    })
+    .then((response) => {
+        if (response.ok) {
+            alert("Диаграмма успешно удалена с сервера!");
+        } else {
+            alert("Ошибка при удалении диаграммы.");
+        }
+    })
+    .catch((error) => {
+        console.error("Ошибка при удалении диаграммы:", error);
+        alert("Ошибка при удалении диаграммы.");
+    });
+}
+
+function getAllDiagramsServer() {
+    fetch(`${backendAddr}/api/projects`)
+        .then((response) => response.json())
+        .then((data) => {
+            console.log("Все диаграммы:", data);
+            // Здесь можно обновить состояние или выполнить другие действия с данными
+        })
+        .catch((error) => {
+            console.error("Ошибка при получении всех диаграмм:", error);
+            alert("Ошибка при получении всех диаграмм.");
+        });
+}
 
 export { 
     saveDiagramServer, 
     loadDiagramServer, 
+    deleteDiagramServer,
+    getAllDiagramsServer,
     transformToServerFormat, 
     transformToGoJSFormat, 
     validateCondition,
