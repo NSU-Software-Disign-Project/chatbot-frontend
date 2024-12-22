@@ -151,36 +151,52 @@ function validateCondition(conditionText) {
       };
     });
   
-    const linkDataArray = data.linkDataArray.map((link) => ({
+    const linkDataArray = data.linkDataArray ? data.linkDataArray.map((link) => ({
       from: link.from,
       to: link.to,
       fromPort: link.fromPort || undefined,
       toPort: link.toPort || undefined,
-    }));
+    })) : [];
   
     return { nodeDataArray, linkDataArray };
   }
 
-function transformToGoJSFormat(data) {
-    const nodeDataArray = data.nodeDataArray.map((node) => ({
+function transformToGoJSFormat(raw) {
+    var data = raw.data;
+    console.log("Node data array:", data.nodeDataArray); // Debugging statement
+    const nodeDataArray = data.nodeDataArray ? data.nodeDataArray.map((node) => ({
         key: node.id, // GoJS использует key, а бэкенд — id
         category: node.type, // GoJS использует category, а бэкенд — type
         message: node.text, // GoJS использует message, а бэкенд — text
-        name: node.variableName, // GoJS использует name, а бэкенд — variableName
-        value: node.variableValue, // GoJS использует value, а бэкенд — variableValue
-        inputs: node.conditions?.map((condition) => ({ portId: condition.portId })),
-        outputs: node.choises?.map((choise) => ({ portId: choise.portId })),
-        additionalTexts: node.choises?.map((choise) => ({ text: choise.text })),
-    }));
+        name: node.variableName, // GoJS использует variableName
+        value: node.variableValue, // GoJS использует variableValue
+        outputsConds: node.conditions ? node.conditions.map((condition) => ({
+            portId: condition.portId,
+            text: condition.conditionValue === false 
+                  ? "" 
+                  : `${condition.condition} ${condition.conditionValue}`
+        })) : [],
+        options: node.choises ? node.choises.map((choise) => ({
+            portId: choise.portId,
+            text: choise.text
+        })) : [],
+    })) : [];
 
-    const linkDataArray = data.linkDataArray.map((link) => ({
+    console.log("Link data array:", data.linkDataArray); // Debugging statement
+    const linkDataArray = data.linkDataArray ? data.linkDataArray.map((link) => ({
         from: link.from,
         to: link.to,
         fromPort: link.fromPort || undefined,
         toPort: link.toPort || undefined,
-    }));
+    })) : [];
 
-    return { nodeDataArray, linkDataArray };
+    return {
+        class: "GraphLinksModel",
+        linkFromPortIdProperty: "fromPort",
+        linkToPortIdProperty: "toPort",
+        nodeDataArray,
+        linkDataArray
+    };
 }
 
 const backendAddr = process.env.REACT_APP_BACKEND_ADDR;
@@ -217,6 +233,7 @@ function loadDiagramServer(diagramRefObject, projectName) {
     fetch(`${backendAddr}/api/project/${projectName}`)
         .then((response) => response.json())
         .then((data) => {
+            console.log("Data received from server:", data); // Debugging statement
             const diagram = diagramRefObject.current;
             if (!diagram) {
                 alert("Диаграмма не инициализирована.");
@@ -225,8 +242,10 @@ function loadDiagramServer(diagramRefObject, projectName) {
   
         // Преобразуем данные в формат, который понимает GoJS
         const transformedData = transformToGoJSFormat(data);
+        console.log("Transformed data:", transformedData); // Debugging statement
   
         diagram.model = go.Model.fromJson(transformedData);
+        console.log("Diagram model after loading:", diagram.model.toJson()); // Debugging statement
         })
         .catch((error) => {
             console.error("Ошибка при загрузке диаграммы:", error);
