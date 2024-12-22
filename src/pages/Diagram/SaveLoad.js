@@ -65,11 +65,11 @@ function saveDiagramLocally(diagramRefObject) {
 
 function validateCondition(conditionText) {
     if (!conditionText) {
-      return ["==", false]; // По умолчанию, если условие пустое
+      return ["===", false]; // По умолчанию, если условие пустое
     }
   
     const operators = [">=", "<=", ">", "<", "==", "!="];
-    let operator = "=="; // По умолчанию
+    let operator = "==="; // По умолчанию
     let conditionValue;
   
     // Проверяем, есть ли оператор в условии
