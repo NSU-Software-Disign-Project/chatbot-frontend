@@ -33,6 +33,10 @@ class SocketService {
     this.socket.on("disconnect", () => {
         console.log("Соединение разорвано");
     });
+
+    this.socket.on("connect_error", (error) => {
+        console.error("Ошибка подключения:", error);
+    });
   }
 
   // Отправить сообщение "start" при открытии чата

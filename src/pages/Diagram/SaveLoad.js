@@ -233,7 +233,12 @@ function saveDiagramServer(diagramRefObject, projectName) {
 
 function loadDiagramServer(diagramRefObject, projectName) {
     fetch(`${backendAddr}/api/project/${projectName}`)
-        .then((response) => response.json())
+        .then((response) => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
         .then((data) => {
             console.log("Data received from server:", data); // Debugging statement
             const diagram = diagramRefObject.current;
