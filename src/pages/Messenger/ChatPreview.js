@@ -5,13 +5,15 @@ const ChatPreview = ({ onClose }) => {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [socket, setSocket] = useState(null);
+  const [connectionStatus, setConnectionStatus] = useState("connecting"); // Статус соединения
 
   useEffect(() => {
     console.log("Чат открывается, пытаемся подключиться к WebSocket...");
 
     const newSocket = io("http://localhost:8080", {
       transports: ["websocket"], // Используем WebSocket
-      reconnectionAttempts: 3, // Пробуем подключиться 3 раза
+      reconnectionAttempts: 5, // Количество попыток переподключения
+      reconnectionDelay: 3000, // Задержка между попытками переподключения (3 секунды)
       timeout: 10000, // Таймаут на подключение 10 секунд
     });
 
@@ -19,14 +21,17 @@ const ChatPreview = ({ onClose }) => {
 
     newSocket.on("connect", () => {
       console.log("Подключение установлено к серверу WebSocket!");
+      setConnectionStatus("connected");
     });
 
     newSocket.on("connect_error", (err) => {
       console.error("Ошибка при подключении WebSocket:", err);
+      setConnectionStatus("error"); 
     });
 
     newSocket.on("connect_timeout", () => {
       console.error("Таймаут подключения WebSocket!");
+      setConnectionStatus("timeout");
     });
 
     newSocket.on("start", (initialMessages) => {
@@ -46,20 +51,19 @@ const ChatPreview = ({ onClose }) => {
       console.error("Ошибка WebSocket:", err);
     });
 
-    newSocket.on("disconnect", () => {
-      console.log("Соединение WebSocket было закрыто.");
-    });
-
     newSocket.on("reconnect", (attemptNumber) => {
       console.log(`Попытка №${attemptNumber} переподключиться к WebSocket...`);
+      setConnectionStatus("reconnecting"); 
     });
 
     newSocket.on("reconnect_error", (err) => {
       console.error("Ошибка при переподключении WebSocket:", err);
+      setConnectionStatus("reconnect_error"); 
     });
 
     newSocket.on("reconnect_failed", () => {
       console.error("Не удалось переподключиться к WebSocket.");
+      setConnectionStatus("reconnect_failed"); 
     });
 
     return () => {
@@ -91,6 +95,21 @@ const ChatPreview = ({ onClose }) => {
     }
 
     setInput("");
+  };
+
+  const renderConnectionStatusMessage = () => {
+    switch (connectionStatus) {
+      case "error":
+        return <div style={{ color: "grey" }}>Ошибка подключения. Попробуйте снова.</div>;
+      case "reconnecting":
+        return <div style={{ color: "grey" }}>Попытка переподключения...</div>;
+      case "reconnect_failed":
+        return <div style={{ color: "grey" }}>Не удалось переподключиться. Попробуйте позже.</div>;
+      case "disconnected":
+        return <div style={{ color: "grey" }}>Соединение потеряно. Переподключитесь.</div>;
+      default:
+        return null;
+    }
   };
 
   return (
@@ -144,6 +163,7 @@ const ChatPreview = ({ onClose }) => {
             </span>
           </div>
         ))}
+        {renderConnectionStatusMessage()} {}
       </div>
 
       <div
