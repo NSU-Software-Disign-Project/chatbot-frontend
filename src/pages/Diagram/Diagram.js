@@ -160,6 +160,8 @@ const Diagram = () => {
     transition: 'background-color 0.3s ease',
   };
 
+  const projectName = "unprocessed";
+
   return (
     <>
       {/* Кнопки управления */}
@@ -178,14 +180,14 @@ const Diagram = () => {
       </button>
 
       <button
-        onClick={() => saveDiagramServer(diagramRefObject)}
+        onClick={() => saveDiagramServer(diagramRefObject, projectName)}
         style={buttonStyle}
       >
         Сохранить диаграмму на сервер
       </button>
 
       <button
-        onClick={() => loadDiagramServer(diagramRefObject)}
+        onClick={() => loadDiagramServer(diagramRefObject, projectName)}
         style={buttonStyle}
       >
         Загрузить диаграмму с сервера

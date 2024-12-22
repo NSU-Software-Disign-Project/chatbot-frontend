@@ -204,6 +204,12 @@ const backendAddr = process.env.REACT_APP_ENV === 'production'
     : process.env.REACT_APP_BACKEND_ADDR;
 
 function saveDiagramServer(diagramRefObject, projectName) {
+    if (!projectName) {
+        console.error("Project name is undefined");
+        alert("Project name is required to save the diagram.");
+        return;
+    }
+
     const diagram = diagramRefObject.current;
     if (!diagram) {
       alert("Диаграмма не инициализирована.");
@@ -232,6 +238,12 @@ function saveDiagramServer(diagramRefObject, projectName) {
   }
 
 function loadDiagramServer(diagramRefObject, projectName) {
+    if (!projectName) {
+        console.error("Project name is undefined");
+        alert("Project name is required to load the diagram.");
+        return;
+    }
+
     fetch(`${backendAddr}/api/project/${projectName}`)
         .then((response) => {
             if (!response.ok) {
