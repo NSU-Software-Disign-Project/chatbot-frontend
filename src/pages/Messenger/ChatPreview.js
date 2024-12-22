@@ -29,13 +29,11 @@ const ChatPreview = ({ onClose }) => {
       console.error("Таймаут подключения WebSocket!");
     });
 
-    // Логирование получения истории сообщений
     newSocket.on("start", (initialMessages) => {
       console.log("Получена история сообщений с сервера:", initialMessages);
       setMessages(initialMessages);
     });
 
-    // Логирование получения нового сообщения от сервера
     newSocket.on("message", (newMessage) => {
       console.log("Получено новое сообщение от сервера:", newMessage);
       setMessages((prevMessages) => [
@@ -132,14 +130,14 @@ const ChatPreview = ({ onClose }) => {
                 borderRadius: "10px",
                 background:
                   msg.sender === "user"
-                  ? "rgb(70, 70, 255)" // Синий для пользователя
-                  : msg.sender === "server" || msg.sender === "bot"
-                  ? "#fff" // Белый фон для сервера и бота
-                  : "rgb(50, 50, 50)", // Серый для остальных
+                    ? "rgb(70, 70, 255)"
+                    : msg.sender === "server" || msg.sender === "bot"
+                    ? "#fff"
+                    : "rgb(50, 50, 50)",
                 color:
                   msg.sender === "server" || msg.sender === "bot"
-                  ? "#000" // Чёрный текст для сервера и бота
-                  : "#fff", // Белый текст для остальных
+                    ? "#000"
+                    : "#fff",
               }}
             >
               {msg.text}
@@ -159,6 +157,12 @@ const ChatPreview = ({ onClose }) => {
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault(); 
+              handleSendMessage(); 
+            }
+          }}
           placeholder="Напиши сообщение..."
           style={{
             flexGrow: 1,

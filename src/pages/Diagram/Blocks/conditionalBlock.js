@@ -14,7 +14,7 @@ export const createConditionalBlock = (diagram) => {
         go.Shape,
         "RoundedRectangle",
         {
-          fill: "rgba(255,34,0,0.25)",
+          fill: "rgba(255, 34, 0, 0.25)",
           stroke: "crimson",
           strokeWidth: 2,
         }
@@ -37,29 +37,15 @@ export const createConditionalBlock = (diagram) => {
           .addColumnDefinition(1, { alignment: go.Spot.Center })
           .addColumnDefinition(2, { alignment: go.Spot.Right })
           .add(
-          new go.Panel("Horizontal", {  column: 0, row: 0 }).add(
-            createPort("IN", go.Spot.Left, true, "red")
-          ),
+            new go.Panel("Horizontal", { column: 0, row: 0 }).add(
+              createPort("IN", go.Spot.Left, true, "red")
+            ),
             $(go.TextBlock,
               {column: 1, row: 0, editable: false, isMultiline: false, alignment: go.Spot.Center,
-                font: "bold 10pt sans-serif", margin: new go.Margin(0, 0, 4, 4), stroke:"rgba(204, 255, 209, 0)", text: "Conditional", },
+                font: "bold 8pt sans-serif", margin: new go.Margin(0, 0, 4, 4), stroke:"rgba(204, 255, 209, 0)", text: "Condition", },
             ),
-          // new go.Panel("Horizontal", { column: 2, row: 0 }).add(
-          //   createPort("OUT", go.Spot.Right, false, "red"),
-          // ),
-        ),
-
-        $(
-          go.TextBlock,
-          {
-            editable: true,
-            isMultiline: false,
-            font: "bold 10pt sans-serif",
-            margin: new go.Margin(0, 0),
-            stroke: "rgba(255, 187, 187, 1)",
-          },
-          new go.Binding("text", "value").makeTwoWay()
-        ),
+          ),
+        
         $(
           go.Panel,
           "Vertical",
@@ -69,7 +55,7 @@ export const createConditionalBlock = (diagram) => {
             defaultAlignment: go.Spot.Left,
             stretch: go.GraphObject.Horizontal,
           },
-          new go.Binding("itemArray", "outputsConds").makeTwoWay(),
+          new go.Binding("itemArray", "conditions").makeTwoWay(),
           {
             itemTemplate: $(
               go.Panel,
@@ -105,7 +91,7 @@ export const createConditionalBlock = (diagram) => {
         )
       )
     ),
-
+    
     {
       contextMenu: $(
         go.Adornment,
@@ -115,16 +101,16 @@ export const createConditionalBlock = (diagram) => {
           $(go.TextBlock, "Добавить условие"),
           {
             click: (e, obj) => {
-              const node = obj.part; // Текущий узел
+              const node = obj.part;
               const model = diagram.model;
 
               model.startTransaction("Добавить условие");
 
-              const outputsConds = node.data.outputsConds || [];
-              const newPortId = `OUT${outputsConds.length}`;
-              const newCondition = { text: `Condition ${outputsConds.length + 1}`, portId: newPortId };
+              const conditions = node.data.conditions || [];
+              const newPortId = `OUT${conditions.length}`;
+              const newCondition = { text: `Condition ${conditions.length + 1}`, portId: newPortId };
 
-              model.setDataProperty(node.data, "outputsConds", [...outputsConds, newCondition]);
+              model.setDataProperty(node.data, "conditions", [...conditions, newCondition]);
 
               model.commitTransaction("Добавить условие");
             },
@@ -140,10 +126,10 @@ export const createConditionalBlock = (diagram) => {
 
               model.startTransaction("Убрать условие");
 
-              const outputsConds = node.data.outputsConds || [];
-              if (outputsConds.length > 1) {
-                outputsConds.pop();
-                model.setDataProperty(node.data, "outputsConds", [...outputsConds]);
+              const conditions = node.data.conditions || [];
+              if (conditions.length > 0) {
+                conditions.pop();
+                model.setDataProperty(node.data, "conditions", [...conditions]);
               }
 
               model.commitTransaction("Убрать условие");

@@ -104,15 +104,12 @@ export const createOptionsBlock = (diagram) => {
               const node = obj.part; // Текущий узел
               const model = diagram.model;
 
-              console.log(diagram.model);
-
               model.startTransaction("Добавить опцию");
 
               const options = node.data.options || [];
               const newPortId = `OUT${options.length}`;
               const newCondition = { text: `Options ${options.length + 1}`, portId: newPortId };
 
-              // Добавляем новое условие
               model.setDataProperty(node.data, "options", [...options, newCondition]);
 
               model.commitTransaction("Добавить опцию");
@@ -130,8 +127,8 @@ export const createOptionsBlock = (diagram) => {
               model.startTransaction("Убрать опцию");
 
               const options = node.data.options || [];
-              if (options.length > 1) {
-                options.pop();
+              if (options.length > 0) {
+                options.pop(); 
                 model.setDataProperty(node.data, "options", [...options]);
               }
 
