@@ -211,7 +211,7 @@ const Diagram = () => {
         key: 5,
         category: "apiBlock",
         variable: "variable",
-        link: "https://api.blockchain.org",
+        link: "link",
       },
     ]);
     diagramRefObject.current = diagram;
@@ -287,7 +287,7 @@ const Diagram = () => {
           ref={paletteRef}
           style={{
             background: "rgb(10,10,10)",
-            width: "250px",
+            width: "150px",
             height: "100vh",
             borderRight: "1px dashed white",
             borderRadius: 10,
