@@ -8,10 +8,10 @@ socket.on("message", (data) => {
 });
 
 // Получение запроса ввода
-// socket.on("input", (prompt) => {
-//   const userInput = promptUser(prompt); // Ваш способ получения ввода, например prompt()
-//   socket.emit("response", userInput);
-// });
+socket.on("requestInput", (prompt) => {
+  const userInput = promptUser(prompt); // Ваш способ получения ввода, например prompt()
+  socket.emit("inputResponse", userInput);
+});
 
 // Запуск чата
 socket.emit("start");
