@@ -65,11 +65,11 @@ function saveDiagramLocally(diagramRefObject) {
 
 function validateCondition(conditionText) {
     if (!conditionText) {
-      return ["===", false]; // По умолчанию, если условие пустое
+      return ["", null]; // По умолчанию, если условие пустое
     }
   
     const operators = [">=", "<=", ">", "<", "==", "!="];
-    let operator = "==="; // По умолчанию
+    let operator = "=="; // По умолчанию
     let conditionValue;
   
     // Проверяем, есть ли оператор в условии
@@ -83,7 +83,7 @@ function validateCondition(conditionText) {
     // Разделяем условие на оператор и значение
     const parts = conditionText.split(operator);
     if (parts.length !== 2) {
-      return ["==", false]; // Если условие некорректно, возвращаем false
+      return ["", null]; // Некорректное условие, всегда false
     }
   
     const value = parts[1].trim();
