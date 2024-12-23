@@ -4,6 +4,8 @@ const backendAddr = process.env.REACT_APP_ENV === 'production'
     ? process.env.REACT_APP_BACKEND_CONTAINER 
     : process.env.REACT_APP_BACKEND_ADDR;
 
+console.log("Backend address for WebSocket:", backendAddr); // Debugging statement
+
 class SocketService {
     constructor() {
         this.socket = null;

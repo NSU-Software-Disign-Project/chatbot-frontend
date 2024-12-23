@@ -203,6 +203,8 @@ const backendAddr = process.env.REACT_APP_ENV === 'production'
     ? process.env.REACT_APP_BACKEND_CONTAINER 
     : process.env.REACT_APP_BACKEND_ADDR;
 
+console.log("Backend address:", backendAddr); // Debugging statement
+
 function saveDiagramServer(diagramRefObject, projectName) {
     if (!projectName) {
         console.error("Project name is undefined");
