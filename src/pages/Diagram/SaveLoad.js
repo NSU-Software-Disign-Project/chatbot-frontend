@@ -109,7 +109,8 @@ function validateCondition(conditionText) {
         ? [] 
         : node.outputsConds.map((cond, index) => {
           const { text, portId } = cond;
-          const [operator, conditionValue] = validateCondition(text);
+          let [operator, conditionValue] = validateCondition(text);
+          operator = decodeURIComponent(operator); // Декодируем оператор
           return {
             conditionId: index,
             variableName: node.value,
