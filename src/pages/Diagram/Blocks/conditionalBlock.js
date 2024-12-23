@@ -58,7 +58,7 @@ export const createConditionalBlock = (diagram) => {
             margin: new go.Margin(0, 0),
             stroke: "rgba(255, 187, 187, 1)",
           },
-          new go.Binding("text", "value").makeTwoWay()
+          new go.Binding("text", "variableName").makeTwoWay()
         ),
         $(
           go.Panel,

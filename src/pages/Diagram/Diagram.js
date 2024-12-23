@@ -87,7 +87,7 @@ const Diagram = () => {
         {
           key: 2,
           category: "conditionalBlock",
-          value: "variableName",
+          variableName: "variableName",
           outputsConds:[{"":"","portId":"OUT"}]
         },
         {
@@ -97,7 +97,7 @@ const Diagram = () => {
         {
           key: 4,
           category: "saveBlock",
-          name: "name",
+          variableName: "name",
         },
       ],
       linkDataArray: [],
@@ -127,7 +127,7 @@ const Diagram = () => {
       {
         key: 2,
         category: "conditionalBlock",
-        value: "variableName",
+        variableName: "name",
         outputsConds:[{"":"","portId":"OUT"}]
       },
       {
@@ -137,7 +137,7 @@ const Diagram = () => {
       {
         key: 4,
         category: "saveBlock",
-        name: "name",
+        variableName: "name",
       },
     ]);
     diagramRefObject.current = diagram;
@@ -161,16 +161,6 @@ const Diagram = () => {
   };
 
   const projectName = "unprocessed";
-
-  const handleStartBot = () => {
-    saveDiagramServer(diagramRefObject, projectName)
-      .then(() => {
-        setIsChatOpen(true);
-      })
-      .catch(error => {
-        console.error('Error saving diagram:', error);
-      });
-  };
 
   return (
     <>

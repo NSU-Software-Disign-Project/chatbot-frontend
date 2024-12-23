@@ -110,10 +110,9 @@ function validateCondition(conditionText) {
         : node.outputsConds.map((cond, index) => {
           const { text, portId } = cond;
           let [operator, conditionValue] = validateCondition(text);
-          operator = decodeURIComponent(operator); // Декодируем оператор
           return {
             conditionId: index,
-            variableName: node.value,
+            variableName: node.variableName,
             condition: operator,
             conditionValue,
             portId,
@@ -123,7 +122,7 @@ function validateCondition(conditionText) {
         return {
           id: node.key,
           type: node.category,
-          variableName: node.value,
+          variableName: node.variableName,
           conditions,
         };
       } else if (node.category === "optionsBlock") {
@@ -147,8 +146,7 @@ function validateCondition(conditionText) {
         id: node.key,
         type: node.category,
         text: node.message || undefined,
-        variableName: node.name || undefined,
-        variableValue: node.value || undefined,
+        variableName: node.variableName || undefined,
       };
     });
   
@@ -169,11 +167,11 @@ function transformToGoJSFormat(raw) {
         key: node.id, // GoJS использует key, а бэкенд — id
         category: node.type, // GoJS использует category, а бэкенд — type
         message: node.text, // GoJS использует message, а бэкенд — text
-        name: node.variableName, // GoJS использует variableName
-        value: node.variableValue, // GoJS использует variableValue
+        variableName: node.variableName, // GoJS использует variableName 
+        // value: node.variableName, // GoJS использует variableValue
         outputsConds: node.conditions ? node.conditions.map((condition) => ({
             portId: condition.portId,
-            text: condition.conditionValue === false 
+            text: !condition.conditionValue
                   ? "" 
                   : `${condition.condition} ${condition.conditionValue}`
         })) : [],
@@ -221,6 +219,8 @@ function saveDiagramServer(diagramRefObject, projectName) {
   
     const json = diagram.model.toJson();
     const transformedData = transformToServerFormat(JSON.parse(json));
+
+    console.log("Transformed data:", transformedData); // Debugging statement
   
     // Отправляем transformedData на сервер
     fetch(`${backendAddr}/api/project/${projectName}`, {
