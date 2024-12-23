@@ -162,6 +162,16 @@ const Diagram = () => {
 
   const projectName = "unprocessed";
 
+  const handleStartBot = () => {
+    saveDiagramServer(diagramRefObject, projectName)
+      .then(() => {
+        setIsChatOpen(true);
+      })
+      .catch(error => {
+        console.error('Error saving diagram:', error);
+      });
+  };
+
   return (
     <>
       {/* Кнопки управления */}
@@ -195,7 +205,8 @@ const Diagram = () => {
 
       {!isChatOpen ? (
       <button
-        onClick={() =>{setIsChatOpen(!isChatOpen)}}
+        onClick={() =>{ saveDiagramServer(diagramRefObject, projectName); 
+                        setIsChatOpen(!isChatOpen) }}
         style={{
           position: "absolute",
           top: "10px",

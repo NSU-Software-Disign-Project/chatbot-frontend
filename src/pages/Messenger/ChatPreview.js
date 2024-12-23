@@ -9,7 +9,7 @@ const ChatPreview = ({ onClose }) => {
   // Установить соединение при открытии чата
   useEffect(() => {
     socketService.connect();
-    socketService.startBot("undefined");
+    socketService.startBot("unprocessed");
     console.log("Bot started");
 
     // Обработчик входящих сообщений
