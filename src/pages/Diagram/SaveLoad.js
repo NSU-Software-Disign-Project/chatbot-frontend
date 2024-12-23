@@ -199,9 +199,11 @@ function transformToGoJSFormat(raw) {
     };
 }
 
-const backendAddr = process.env.REACT_APP_BACKEND_ADDR || "http://backend:8080";
+if (!process.env.REACT_APP_BACKEND_URL) {
+    console.error("REACT_APP_BACKEND_URL is not defined");
+}
 
-console.log("Backend address:", backendAddr); // Debugging statement
+const backendAddr = process.env.REACT_APP_BACKEND_URL || "http://localhost:8080";
 
 function saveDiagramServer(diagramRefObject, projectName) {
     if (!projectName) {
