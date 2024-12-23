@@ -26,7 +26,7 @@ const ChatPreview = ({ onClose }) => {
 
     newSocket.on("connect_error", (err) => {
       console.error("Ошибка при подключении WebSocket:", err);
-      setConnectionStatus("error"); 
+      setConnectionStatus("error");
     });
 
     newSocket.on("connect_timeout", () => {
@@ -53,17 +53,17 @@ const ChatPreview = ({ onClose }) => {
 
     newSocket.on("reconnect", (attemptNumber) => {
       console.log(`Попытка №${attemptNumber} переподключиться к WebSocket...`);
-      setConnectionStatus("reconnecting"); 
+      setConnectionStatus("reconnecting");
     });
 
     newSocket.on("reconnect_error", (err) => {
       console.error("Ошибка при переподключении WebSocket:", err);
-      setConnectionStatus("reconnect_error"); 
+      setConnectionStatus("reconnect_error");
     });
 
     newSocket.on("reconnect_failed", () => {
       console.error("Не удалось переподключиться к WebSocket.");
-      setConnectionStatus("reconnect_failed"); 
+      setConnectionStatus("reconnect_failed");
     });
 
     return () => {
@@ -83,11 +83,25 @@ const ChatPreview = ({ onClose }) => {
 
     if (socket) {
       console.log("Отправляем сообщение на сервер:", input.trim());
+      let timeoutReached = false;
+
+      const timer = setTimeout(() => {
+        timeoutReached = true;
+        console.warn("Сервер не ответил в течение 2 секунд.");
+        setMessages((prevMessages) => [
+          ...prevMessages,
+          { sender: "bot", text: "Ответ от сервера не получен в течение 2 секунд." },
+        ]);
+      }, 2000);
+
       socket.emit("message", input.trim(), (response) => {
-        if (response) {
-          console.log("Сервер подтвердил получение сообщения:", response);
-        } else {
-          console.warn("Сервер не подтвердил получение сообщения.");
+        if (!timeoutReached) {
+          clearTimeout(timer);
+          if (response) {
+            console.log("Сервер подтвердил получение сообщения:", response);
+          } else {
+            console.warn("Сервер не подтвердил получение сообщения.");
+          }
         }
       });
     } else {
@@ -179,8 +193,8 @@ const ChatPreview = ({ onClose }) => {
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === "Enter") {
-              e.preventDefault(); 
-              handleSendMessage(); 
+              e.preventDefault();
+              handleSendMessage();
             }
           }}
           placeholder="Напиши сообщение..."
