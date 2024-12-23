@@ -1,6 +1,6 @@
 import { io } from "socket.io-client";
 
-const backendAddr = process.env.REACT_APP_BACKEND_ADDR || "http://localhost:8080";
+const backendAddr = process.env.REACT_APP_BACKEND_ADDR || "http://backend:8080";
 
 console.log("Backend address for WebSocket:", backendAddr); // Debugging statement
 
