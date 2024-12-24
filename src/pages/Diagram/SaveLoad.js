@@ -138,7 +138,14 @@ function validateCondition(conditionText) {
           type: node.category,
           choises,
         };
-      };
+      } else if (node.category === "apiBlock") {
+        return {
+          id: node.key,
+          type: node.category,
+          variableName: node.variableName,
+          url: node.url,
+        };
+      }
 
       return {
         id: node.key,

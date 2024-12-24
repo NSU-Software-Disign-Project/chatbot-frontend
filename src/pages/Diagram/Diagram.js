@@ -3,7 +3,6 @@ import * as go from 'gojs';
 import saveBlock from "./Blocks/saveBlock";
 import messageBlock from "./Blocks/messageBlock";
 import apiBlock from "./Blocks/apiBlock";
-
 import {createConditionalBlock} from "./Blocks/conditionalBlock";
 import {createOptionsBlock} from "./Blocks/optionsBlock";
 import createPort from "./Blocks/createPort";
@@ -90,7 +89,7 @@ const Diagram = () => {
         {
           key: 2,
           category: "conditionalBlock",
-          variableName: "variableName",
+          variableName: "variable name",
           conditions:[{"":"","portId":"OUT"}]
         },
         {
@@ -100,12 +99,12 @@ const Diagram = () => {
         {
           key: 4,
           category: "saveBlock",
-          variableName: "name",
+          variableName: "variable name",
         },
         {
           key: 5,
           category: "apiBlock",
-          variableName: "variable",
+          variableName: "variable name",
           url: "https://api.blockchain.org",
         },
       ],

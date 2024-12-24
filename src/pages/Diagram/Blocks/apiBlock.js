@@ -3,8 +3,7 @@ import createPort from "./createPort";
 
 
 const $ = go.GraphObject.make;
-const saveBlock =$(
-
+const apiBlock = $(
   go.Node,
   "Auto",
   $(go.Shape, "RoundedRectangle", { stroke: "#bdcee2", strokeWidth: 2, fill: "rgba(127,141,153,0.25)" }),
@@ -14,17 +13,23 @@ const saveBlock =$(
     .addColumnDefinition(2, { alignment: go.Spot.Right })
     .add(
       new go.TextBlock(
-        { column: 0, row: 0, columnSpan: 3, alignment: go.Spot.Center,
+        {
+          column: 0, row: 0, columnSpan: 3, alignment: go.Spot.Center,
           text: "API Block",
-          font: "bold 8pt sans-serif", margin: new go.Margin(4, 2) , stroke:"#c6d9ef"}),
+          font: "bold 8pt sans-serif", margin: new go.Margin(4, 2), stroke: "#c6d9ef"
+        }),
       $(go.TextBlock,
-        {column: 1, row: 1, editable: true, isMultiline: false, alignment: go.Spot.Center,
-          font: "bold 10pt sans-serif", margin: new go.Margin(2, 18), stroke:"#c6d9ef" },
+        {
+          column: 1, row: 1, editable: true, isMultiline: false, alignment: go.Spot.Center,
+          font: "bold 10pt sans-serif", margin: new go.Margin(2, 18), stroke: "#c6d9ef"
+        },
         new go.Binding("text", "url").makeTwoWay(),
       ),
       $(go.TextBlock,
-        {column: 1, row: 2, editable: true, isMultiline: false, alignment: go.Spot.Center,
-          font: "bold 10pt sans-serif", margin: new go.Margin(2, 18), stroke:"#c6d9ef" },
+        {
+          column: 1, row: 2, editable: true, isMultiline: false, alignment: go.Spot.Center,
+          font: "bold 10pt sans-serif", margin: new go.Margin(2, 18), stroke: "#c6d9ef"
+        },
         new go.Binding("text", "variableName").makeTwoWay(),
       ),
       new go.Panel("Horizontal", { column: 0, row: 1 }).add(
@@ -35,4 +40,4 @@ const saveBlock =$(
       ),
     ),
 )
-export default saveBlock;
+export default apiBlock;
