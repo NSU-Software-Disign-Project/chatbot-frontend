@@ -87,7 +87,7 @@ const Diagram = () => {
         {
           key: 2,
           category: "conditionalBlock",
-          value: "variableName",
+          variableName: "variableName",
           outputsConds:[{"":"","portId":"OUT"}]
         },
         {
@@ -97,7 +97,7 @@ const Diagram = () => {
         {
           key: 4,
           category: "saveBlock",
-          name: "name",
+          variableName: "name",
         },
       ],
       linkDataArray: [],
@@ -127,7 +127,7 @@ const Diagram = () => {
       {
         key: 2,
         category: "conditionalBlock",
-        value: "variableName",
+        variableName: "name",
         outputsConds:[{"":"","portId":"OUT"}]
       },
       {
@@ -137,7 +137,7 @@ const Diagram = () => {
       {
         key: 4,
         category: "saveBlock",
-        name: "name",
+        variableName: "name",
       },
     ]);
     diagramRefObject.current = diagram;
@@ -160,6 +160,8 @@ const Diagram = () => {
     transition: 'background-color 0.3s ease',
   };
 
+  const projectName = "unprocessed";
+
   return (
     <>
       {/* Кнопки управления */}
@@ -178,14 +180,14 @@ const Diagram = () => {
       </button>
 
       <button
-        onClick={() => saveDiagramServer(diagramRefObject)}
+        onClick={() => saveDiagramServer(diagramRefObject, projectName)}
         style={buttonStyle}
       >
         Сохранить диаграмму на сервер
       </button>
 
       <button
-        onClick={() => loadDiagramServer(diagramRefObject)}
+        onClick={() => loadDiagramServer(diagramRefObject, projectName)}
         style={buttonStyle}
       >
         Загрузить диаграмму с сервера
@@ -193,7 +195,8 @@ const Diagram = () => {
 
       {!isChatOpen ? (
       <button
-        onClick={() =>{setIsChatOpen(!isChatOpen)}}
+        onClick={() =>{ saveDiagramServer(diagramRefObject, projectName); 
+                        setIsChatOpen(!isChatOpen) }}
         style={{
           position: "absolute",
           top: "10px",

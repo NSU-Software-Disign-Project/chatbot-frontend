@@ -44,8 +44,22 @@ export const createConditionalBlock = (diagram) => {
               {column: 1, row: 0, editable: false, isMultiline: false, alignment: go.Spot.Center,
                 font: "bold 8pt sans-serif", margin: new go.Margin(0, 0, 4, 4), stroke:"rgba(204, 255, 209, 0)", text: "Condition", },
             ),
-          ),
-        
+          // new go.Panel("Horizontal", { column: 2, row: 0 }).add(
+          //   createPort("OUT", go.Spot.Right, false, "red"),
+          // ),
+        ),
+
+        $(
+          go.TextBlock,
+          {
+            editable: true,
+            isMultiline: false,
+            font: "bold 10pt sans-serif",
+            margin: new go.Margin(0, 0),
+            stroke: "rgba(255, 187, 187, 1)",
+          },
+          new go.Binding("text", "variableName").makeTwoWay()
+        ),
         $(
           go.Panel,
           "Vertical",

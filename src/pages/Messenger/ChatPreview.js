@@ -1,77 +1,38 @@
 import React, { useEffect, useState } from "react";
-import { io } from "socket.io-client";
+import socketService from "./socketService";
 
 const ChatPreview = ({ onClose }) => {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
-  const [socket, setSocket] = useState(null);
-  const [connectionStatus, setConnectionStatus] = useState("connecting"); // Статус соединения
+  const [inputRequest, setInputRequest] = useState(null);
 
+  // Установить соединение при открытии чата
   useEffect(() => {
-    console.log("Чат открывается, пытаемся подключиться к WebSocket...");
+    socketService.connect();
+    socketService.startBot("unprocessed");
+    console.log("Bot started");
 
-    const newSocket = io("http://localhost:8080", {
-      transports: ["websocket"], // Используем WebSocket
-      reconnectionAttempts: 5, // Количество попыток переподключения
-      reconnectionDelay: 3000, // Задержка между попытками переподключения (3 секунды)
-      timeout: 10000, // Таймаут на подключение 10 секунд
+    // Обработчик входящих сообщений
+    socketService.onMessage((message) => {
+      const serverMessage = { sender: "server", text: message };
+      setMessages((prevMessages) => [...prevMessages, serverMessage]);
     });
 
-    setSocket(newSocket);
-
-    newSocket.on("connect", () => {
-      console.log("Подключение установлено к серверу WebSocket!");
-      setConnectionStatus("connected");
+    // Обработчик запроса ввода
+    socketService.onRequestInput((prompt) => {
+      const serverMessage = { sender: "server", text: prompt };
+      setMessages((prevMessages) => [...prevMessages, serverMessage]);
+      setInputRequest(prompt);
     });
 
-    newSocket.on("connect_error", (err) => {
-      console.error("Ошибка при подключении WebSocket:", err);
-      setConnectionStatus("error");
-    });
-
-    newSocket.on("connect_timeout", () => {
-      console.error("Таймаут подключения WebSocket!");
-      setConnectionStatus("timeout");
-    });
-
-    newSocket.on("start", (initialMessages) => {
-      console.log("Получена история сообщений с сервера:", initialMessages);
-      setMessages(initialMessages);
-    });
-
-    newSocket.on("message", (newMessage) => {
-      console.log("Получено новое сообщение от сервера:", newMessage);
-      setMessages((prevMessages) => [
-        ...prevMessages,
-        { sender: "server", text: newMessage },
-      ]);
-    });
-
-    newSocket.on("error", (err) => {
-      console.error("Ошибка WebSocket:", err);
-    });
-
-    newSocket.on("reconnect", (attemptNumber) => {
-      console.log(`Попытка №${attemptNumber} переподключиться к WebSocket...`);
-      setConnectionStatus("reconnecting");
-    });
-
-    newSocket.on("reconnect_error", (err) => {
-      console.error("Ошибка при переподключении WebSocket:", err);
-      setConnectionStatus("reconnect_error");
-    });
-
-    newSocket.on("reconnect_failed", () => {
-      console.error("Не удалось переподключиться к WebSocket.");
-      setConnectionStatus("reconnect_failed");
-    });
-
+    // Очистить соединение при закрытии
     return () => {
-      console.log("Закрываем соединение WebSocket...");
-      newSocket.disconnect();
+      socketService.disconnect();
+      console.log("Bot stopped");
     };
   }, []);
 
+  // Отправить сообщение
   const handleSendMessage = () => {
     if (input.trim() === "") {
       console.warn("Пустое сообщение не будет отправлено.");
@@ -81,31 +42,11 @@ const ChatPreview = ({ onClose }) => {
     const userMessage = { sender: "user", text: input.trim() };
     setMessages((prevMessages) => [...prevMessages, userMessage]);
 
-    if (socket) {
-      console.log("Отправляем сообщение на сервер:", input.trim());
-      let timeoutReached = false;
-
-      const timer = setTimeout(() => {
-        timeoutReached = true;
-        console.warn("Сервер не ответил в течение 2 секунд.");
-        setMessages((prevMessages) => [
-          ...prevMessages,
-          { sender: "bot", text: "Ответ от сервера не получен в течение 2 секунд." },
-        ]);
-      }, 2000);
-
-      socket.emit("message", input.trim(), (response) => {
-        if (!timeoutReached) {
-          clearTimeout(timer);
-          if (response) {
-            console.log("Сервер подтвердил получение сообщения:", response);
-          } else {
-            console.warn("Сервер не подтвердил получение сообщения.");
-          }
-        }
-      });
+    if (inputRequest) {
+      socketService.sendInputResponse(input.trim()); // Отправка ответа на запрос ввода
+      setInputRequest(null);
     } else {
-      console.warn("Соединение WebSocket ещё не установлено.");
+      socketService.sendMessage(input.trim()); // Отправка сообщения на сервер
     }
 
     setInput("");

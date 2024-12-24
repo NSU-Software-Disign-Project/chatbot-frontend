@@ -62,185 +62,255 @@ function loadDiagramLocally(diagramRefObject) {
 }
 
 function validateCondition(conditionText) {
-  if (!conditionText) {
-    return ["==", false]; // По умолчанию, если условие пустое
-  }
-
-  const operators = [">=", "<=", ">", "<", "==", "!="];
-  let operator = "=="; // По умолчанию
-  let conditionValue;
-
-  for (const op of operators) {
-    if (conditionText.includes(op)) {
-      operator = op;
-      break;
+    if (!conditionText) {
+      return ["", null]; // По умолчанию, если условие пустое
     }
+  
+    const operators = [">=", "<=", ">", "<", "==", "!="];
+    let operator = "=="; // По умолчанию
+    let conditionValue;
+  
+    // Проверяем, есть ли оператор в условии
+    for (const op of operators) {
+      if (conditionText.includes(op)) {
+        operator = op;
+        break;
+      }
+    }
+  
+    // Разделяем условие на оператор и значение
+    const parts = conditionText.split(operator);
+    if (parts.length !== 2) {
+      return ["", null]; // Некорректное условие, всегда false
+    }
+  
+    const value = parts[1].trim();
+  
+    // Определяем тип значения
+    if (value === "true" || value === "false") {
+      conditionValue = value === "true";
+    } else if (!isNaN(value)) {
+      conditionValue = parseFloat(value);
+    } else {
+      conditionValue = value;
+    }
+  
+    return [operator, conditionValue];
   }
 
-  const parts = conditionText.split(operator);
-  if (parts.length !== 2) {
-    return ["==", false]; // Если условие некорректно, возвращаем false
-  }
-
-  const value = parts[1].trim();
-
-  if (value === "true" || value === "false") {
-    conditionValue = value === "true";
-  } else if (!isNaN(value)) {
-    conditionValue = parseFloat(value);
-  } else {
-    conditionValue = value;
-  }
-
-  return [operator, conditionValue];
-}
-
-function transformToServerFormat(data) {
-  const nodeDataArray = (data.nodeDataArray || []).map((node) => {
-    if (node.category === "conditionalBlock") {
-      const conditions = (node.outputsConds || []).map((cond, index) => {
-        const { text, portId } = cond;
-        const [operator, conditionValue] = validateCondition(text);
+  function transformToServerFormat(data) {
+    const nodeDataArray = data.nodeDataArray.map((node) => {
+      if (node.category === "conditionalBlock") {
+        // Преобразуем outputsConds в conditions
+        const conditions 
+        = !node.outputsConds || node.outputsConds.length < 1 
+        ? [] 
+        : node.outputsConds.map((cond, index) => {
+          const { text, portId } = cond;
+          let [operator, conditionValue] = validateCondition(text);
+          return {
+            conditionId: index,
+            variableName: node.variableName,
+            condition: operator,
+            conditionValue,
+            portId,
+          };
+        });
+  
         return {
-          conditionId: index,
-          variableName: node.value,
-          condition: operator,
-          conditionValue,
-          portId,
+          id: node.key,
+          type: node.category,
+          variableName: node.variableName,
+          conditions,
+        };
+      } else if (node.category === "optionsBlock") {
+        // Преобразуем options в choises
+        const choises = !node.options || node.options.length < 1 
+        ? []
+        : node.options.map((option, index) => ({
+          choiseId: index,
+          text: option.text,
+          portId: option.portId,
+        }));
+  
+        return {
+          id: node.key,
+          type: node.category,
+          choises,
         };
       });
 
       return {
         id: node.key,
         type: node.category,
-        variableName: node.value,
-        conditions,
+        text: node.message || undefined,
+        variableName: node.variableName || undefined,
       };
-    } else if (node.category === "optionsBlock") {
-      const choises = (node.options || []).map((option, index) => ({
-        choiseId: index,
-        text: option.text,
-        portId: option.portId,
-      }));
-
-      return {
-        id: node.key,
-        type: node.category,
-        choises,
-      };
-    }
-
-    return {
-      id: node.key,
-      type: node.category,
-      text: node.message || undefined,
-      variableName: node.name || undefined,
-      variableValue: node.value || undefined,
-    };
-  });
-
-  const linkDataArray = (data.linkDataArray || []).map((link) => ({
-    from: link.from,
-    to: link.to,
-    fromPort: link.fromPort || undefined,
-    toPort: link.toPort || undefined,
-  }));
-
-  return { nodeDataArray, linkDataArray };
-}
-
-function transformToGoJSFormat(data) {
-  const nodeDataArray = (data.nodeDataArray || []).map((node) => ({
-    key: node.id,
-    category: node.type,
-    message: node.text,
-    name: node.variableName,
-    value: node.variableValue,
-    inputs: (node.conditions || []).map((condition) => ({ portId: condition.portId })),
-    outputs: (node.choises || []).map((choise) => ({ portId: choise.portId })),
-    additionalTexts: (node.choises || []).map((choise) => ({ text: choise.text })),
-  }));
-
-  const linkDataArray = (data.linkDataArray || []).map((link) => ({
-    from: link.from,
-    to: link.to,
-    fromPort: link.fromPort || undefined,
-    toPort: link.toPort || undefined,
-  }));
-
-  return { nodeDataArray, linkDataArray };
-}
-
-function saveDiagramServer(diagramRefObject) {
-  const diagram = diagramRefObject.current;
-  if (!diagram) {
-    alert("Диаграмма не инициализирована.");
-    return;
+    });
+  
+    const linkDataArray = data.linkDataArray ? data.linkDataArray.map((link) => ({
+      from: link.from,
+      to: link.to,
+      fromPort: link.fromPort || undefined,
+      toPort: link.toPort || undefined,
+    })) : [];
+  
+    return { nodeDataArray, linkDataArray };
   }
 
-  const json = diagram.model.toJson();
-  const transformedData = transformToServerFormat(JSON.parse(json));
+function transformToGoJSFormat(raw) {
+    var data = raw.data;
+    console.log("Node data array:", data.nodeDataArray); // Debugging statement
+    const nodeDataArray = data.nodeDataArray ? data.nodeDataArray.map((node) => ({
+        key: node.id, // GoJS использует key, а бэкенд — id
+        category: node.type, // GoJS использует category, а бэкенд — type
+        message: node.text, // GoJS использует message, а бэкенд — text
+        variableName: node.variableName, // GoJS использует variableName 
+        // value: node.variableName, // GoJS использует variableValue
+        outputsConds: node.conditions ? node.conditions.map((condition) => ({
+            portId: condition.portId,
+            text: !condition.conditionValue
+                  ? "" 
+                  : `${condition.condition} ${condition.conditionValue}`
+        })) : [],
+        options: node.choises ? node.choises.map((choise) => ({
+            portId: choise.portId,
+            text: choise.text
+        })) : [],
+    })) : [];
 
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => {
-    controller.abort();
-    alert("Время ожидания ответа сервера истекло.");
-  }, 2000);
+    console.log("Link data array:", data.linkDataArray); // Debugging statement
+    const linkDataArray = data.linkDataArray ? data.linkDataArray.map((link) => ({
+        from: link.from,
+        to: link.to,
+        fromPort: link.fromPort || undefined,
+        toPort: link.toPort || undefined,
+    })) : [];
 
-  fetch('/api/saveDiagram', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(transformedData),
-    signal: controller.signal,
-  })
-    .then((response) => response.json())
-    .then((data) => {
-      clearTimeout(timeoutId);
-      alert("Диаграмма успешно сохранена на сервере!");
-    })
-    .catch((error) => {
-      clearTimeout(timeoutId);
-      console.error("Ошибка при сохранении диаграммы:", error);
-      alert("Ошибка при сохранении диаграммы.");
-    });
+    return {
+        class: "GraphLinksModel",
+        linkFromPortIdProperty: "fromPort",
+        linkToPortIdProperty: "toPort",
+        nodeDataArray,
+        linkDataArray
+    };
 }
 
-function loadDiagramServer(diagramRefObject) {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => {
-    controller.abort();
-    alert("Время ожидания ответа сервера истекло.");
-  }, 2000);
+if (!process.env.REACT_APP_BACKEND_URL) {
+    console.error("REACT_APP_BACKEND_URL is not defined");
+}
 
-  fetch('/api/loadDiagram', { signal: controller.signal })
-    .then((response) => response.json())
-    .then((data) => {
-      clearTimeout(timeoutId);
+const backendAddr = process.env.REACT_APP_BACKEND_URL || "http://localhost:8080";
 
-      const diagram = diagramRefObject.current;
-      if (!diagram) {
-        alert("Диаграмма не инициализирована.");
+function saveDiagramServer(diagramRefObject, projectName) {
+    if (!projectName) {
+        console.error("Project name is undefined");
+        alert("Project name is required to save the diagram.");
         return;
-      }
+    }
 
-      const transformedData = transformToGoJSFormat(data);
-      diagram.model = go.Model.fromJson(transformedData);
+    const diagram = diagramRefObject.current;
+    if (!diagram) {
+      alert("Диаграмма не инициализирована.");
+      return;
+    }
+  
+    const json = diagram.model.toJson();
+    const transformedData = transformToServerFormat(JSON.parse(json));
+
+    console.log("Transformed data:", transformedData); // Debugging statement
+  
+    // Отправляем transformedData на сервер
+    fetch(`${backendAddr}/api/project/${projectName}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(transformedData),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        alert("Диаграмма успешно сохранена на сервере!");
+      })
+      .catch((error) => {
+        console.error("Ошибка при сохранении диаграммы:", error);
+        alert("Ошибка при сохранении диаграммы.");
+      });
+  }
+
+function loadDiagramServer(diagramRefObject, projectName) {
+    if (!projectName) {
+        console.error("Project name is undefined");
+        alert("Project name is required to load the diagram.");
+        return;
+    }
+
+    fetch(`${backendAddr}/api/project/${projectName}`)
+        .then((response) => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then((data) => {
+            console.log("Data received from server:", data); // Debugging statement
+            const diagram = diagramRefObject.current;
+            if (!diagram) {
+                alert("Диаграмма не инициализирована.");
+                return;
+            }
+  
+        // Преобразуем данные в формат, который понимает GoJS
+        const transformedData = transformToGoJSFormat(data);
+        console.log("Transformed data:", transformedData); // Debugging statement
+  
+        diagram.model = go.Model.fromJson(transformedData);
+        console.log("Diagram model after loading:", diagram.model.toJson()); // Debugging statement
+        })
+        .catch((error) => {
+            console.error("Ошибка при загрузке диаграммы:", error);
+            alert("Ошибка при загрузке диаграммы.");
+        });
+  }
+
+function deleteDiagramServer(projectName) {
+    fetch(`${backendAddr}/api/project/${projectName}`, {
+        method: 'DELETE',
+    })
+    .then((response) => {
+        if (response.ok) {
+            alert("Диаграмма успешно удалена с сервера!");
+        } else {
+            alert("Ошибка при удалении диаграммы.");
+        }
     })
     .catch((error) => {
-      clearTimeout(timeoutId);
-      console.error("Ошибка при загрузке диаграммы:", error);
-      alert("Ошибка при загрузке диаграммы.");
+        console.error("Ошибка при удалении диаграммы:", error);
+        alert("Ошибка при удалении диаграммы.");
     });
 }
 
-export {
-  saveDiagramServer,
-  loadDiagramServer,
-  transformToServerFormat,
-  transformToGoJSFormat,
-  validateCondition,
-  saveDiagramLocally,
-  loadDiagramLocally,
-};
+function getAllDiagramsServer() {
+    fetch(`${backendAddr}/api/projects`)
+        .then((response) => response.json())
+        .then((data) => {
+            console.log("Все диаграммы:", data);
+            // Здесь можно обновить состояние или выполнить другие действия с данными
+        })
+        .catch((error) => {
+            console.error("Ошибка при получении всех диаграмм:", error);
+            alert("Ошибка при получении всех диаграмм.");
+        });
+}
+
+export { 
+    saveDiagramServer, 
+    loadDiagramServer, 
+    deleteDiagramServer,
+    getAllDiagramsServer,
+    transformToServerFormat, 
+    transformToGoJSFormat, 
+    validateCondition,
+    saveDiagramLocally,
+    loadDiagramLocally
+ };
