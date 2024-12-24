@@ -34,7 +34,10 @@ const ChatPreview = ({ onClose }) => {
 
   // Отправить сообщение
   const handleSendMessage = () => {
-    if (input.trim() === "") return;
+    if (input.trim() === "") {
+      console.warn("Пустое сообщение не будет отправлено.");
+      return;
+    }
 
     const userMessage = { sender: "user", text: input.trim() };
     setMessages((prevMessages) => [...prevMessages, userMessage]);
@@ -47,6 +50,21 @@ const ChatPreview = ({ onClose }) => {
     }
 
     setInput("");
+  };
+
+  const renderConnectionStatusMessage = () => {
+    switch (connectionStatus) {
+      case "error":
+        return <div style={{ color: "grey" }}>Ошибка подключения. Попробуйте снова.</div>;
+      case "reconnecting":
+        return <div style={{ color: "grey" }}>Попытка переподключения...</div>;
+      case "reconnect_failed":
+        return <div style={{ color: "grey" }}>Не удалось переподключиться. Попробуйте позже.</div>;
+      case "disconnected":
+        return <div style={{ color: "grey" }}>Соединение потеряно. Переподключитесь.</div>;
+      default:
+        return null;
+    }
   };
 
   return (
@@ -64,7 +82,6 @@ const ChatPreview = ({ onClose }) => {
         boxShadow: "-2px 0 10px rgba(0, 0, 0, 0.5)",
       }}
     >
-      {/* Список сообщений */}
       <div
         style={{
           flexGrow: 1,
@@ -88,18 +105,22 @@ const ChatPreview = ({ onClose }) => {
                 background:
                   msg.sender === "user"
                     ? "rgb(70, 70, 255)"
-                    : msg.sender === "server"
-                      ? "rgb(28, 110, 28)"
-                      : "rgb(50, 50, 50)",
+                    : msg.sender === "server" || msg.sender === "bot"
+                    ? "#fff"
+                    : "rgb(50, 50, 50)",
+                color:
+                  msg.sender === "server" || msg.sender === "bot"
+                    ? "#000"
+                    : "#fff",
               }}
             >
               {msg.text}
             </span>
           </div>
         ))}
+        {renderConnectionStatusMessage()} {}
       </div>
 
-      {/* Поле ввода */}
       <div
         style={{
           display: "flex",
@@ -111,6 +132,12 @@ const ChatPreview = ({ onClose }) => {
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              handleSendMessage();
+            }
+          }}
           placeholder="Напиши сообщение..."
           style={{
             flexGrow: 1,
@@ -137,7 +164,6 @@ const ChatPreview = ({ onClose }) => {
         </button>
       </div>
 
-      {/* Кнопка закрытия */}
       <button
         onClick={onClose}
         style={{

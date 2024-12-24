@@ -1,67 +1,65 @@
 import * as go from 'gojs';
 
 function saveDiagramLocally(diagramRefObject) {
-    const diagram = diagramRefObject.current;
-    if (!diagram) {
-      alert("Диаграмма не инициализирована.");
-      return;
-    }
-
-    const model = diagram.model.toJson();
-    const parsedModel = JSON.parse(model);
-
-    parsedModel.linkDataArray = parsedModel.linkDataArray.map(link => {
-      const { points, ...rest } = link; // Убираем points
-      return rest;
-    });
-
-    // Преобразуем обратно в JSON строку
-    const json = JSON.stringify(parsedModel, null, 2); // Для читаемого формата добавлен отступ
-
-    const blob = new Blob([json], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "diagram.json";
-    a.click();
-
-    URL.revokeObjectURL(url);
+  const diagram = diagramRefObject.current;
+  if (!diagram) {
+    alert("Диаграмма не инициализирована.");
+    return;
   }
 
+  const model = diagram.model.toJson();
+  const parsedModel = JSON.parse(model);
 
+  parsedModel.linkDataArray = (parsedModel.linkDataArray || []).map(link => {
+    const { points, ...rest } = link; // Убираем points
+    return rest;
+  });
 
-  function loadDiagramLocally(diagramRefObject) {
-    const fileInput = document.createElement("input");
-    fileInput.type = "file";
-    fileInput.accept = "application/json";
+  // Преобразуем обратно в JSON строку
+  const json = JSON.stringify(parsedModel, null, 2); // Для читаемого формата добавлен отступ
 
-    fileInput.onchange = (event) => {
-      const file = event.target.files[0];
-      if (!file) return;
+  const blob = new Blob([json], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
 
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const json = e.target.result;
-        try {
-          const parsedData = JSON.parse(json);
-          const diagram = diagramRefObject.current;
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "diagram.json";
+  a.click();
 
-          if (parsedData && parsedData.nodeDataArray && parsedData.linkDataArray) {
-            diagram.model = go.Model.fromJson(parsedData);
-          } else {
-            alert("Некорректный формат данных файла.");
-          }
-        } catch (error) {
-          alert("Ошибка при чтении файла: " + error.message);
+  URL.revokeObjectURL(url);
+}
+
+function loadDiagramLocally(diagramRefObject) {
+  const fileInput = document.createElement("input");
+  fileInput.type = "file";
+  fileInput.accept = "application/json";
+
+  fileInput.onchange = (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const json = e.target.result;
+      try {
+        const parsedData = JSON.parse(json);
+        const diagram = diagramRefObject.current;
+
+        if (parsedData && parsedData.nodeDataArray && parsedData.linkDataArray) {
+          diagram.model = go.Model.fromJson(parsedData);
+        } else {
+          alert("Некорректный формат данных файла.");
         }
-      };
-
-      reader.readAsText(file);
+      } catch (error) {
+        alert("Ошибка при чтении файла: " + error.message);
+      }
     };
 
-    fileInput.click();
-  }
+    reader.readAsText(file);
+  };
+
+  fileInput.click();
+}
 
 function validateCondition(conditionText) {
     if (!conditionText) {
@@ -140,8 +138,8 @@ function validateCondition(conditionText) {
           type: node.category,
           choises,
         };
-      }
-  
+      });
+
       return {
         id: node.key,
         type: node.category,
