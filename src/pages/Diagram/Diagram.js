@@ -2,6 +2,8 @@ import React, {useEffect, useRef, useState} from 'react';
 import * as go from 'gojs';
 import saveBlock from "./Blocks/saveBlock";
 import messageBlock from "./Blocks/messageBlock";
+import apiBlock from "./Blocks/apiBlock";
+
 import {createConditionalBlock} from "./Blocks/conditionalBlock";
 import {createOptionsBlock} from "./Blocks/optionsBlock";
 import createPort from "./Blocks/createPort";
@@ -29,6 +31,7 @@ const Diagram = () => {
     }
 
     diagram.nodeTemplateMap.add("saveBlock", saveBlock);
+    diagram.nodeTemplateMap.add("apiBlock", apiBlock);
     diagram.nodeTemplateMap.add("messageBlock", messageBlock);
     diagram.nodeTemplateMap.add("conditionalBlock", createConditionalBlock(diagram));
     diagram.nodeTemplateMap.add("optionsBlock", createOptionsBlock(diagram));
@@ -99,6 +102,12 @@ const Diagram = () => {
           category: "saveBlock",
           variableName: "name",
         },
+        {
+          key: 5,
+          category: "apiBlock",
+          variable: "variable",
+          link: "https://api.blockchain.org",
+        },
       ],
       linkDataArray: [],
     });
@@ -138,6 +147,12 @@ const Diagram = () => {
         key: 4,
         category: "saveBlock",
         variableName: "name",
+      },
+      {
+        key: 5,
+        category: "apiBlock",
+        variable: "variable",
+        link: "link",
       },
     ]);
     diagramRefObject.current = diagram;
