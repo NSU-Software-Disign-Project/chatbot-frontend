@@ -138,20 +138,14 @@ function validateCondition(conditionText) {
           type: node.category,
           choises,
         };
-      } else if (node.category === "apiBlock") {
-        return {
-          id: node.key,
-          type: node.category,
-          variableName: node.variableName,
-          url: node.url,
-        };
-      }
+      } 
 
       return {
         id: node.key,
         type: node.category,
         text: node.message || undefined,
         variableName: node.variableName || undefined,
+        url: node.url || undefined,
       };
     }) || [];
   
@@ -173,6 +167,7 @@ function transformToGoJSFormat(raw) {
         category: node.type, // GoJS использует category, а бэкенд — type
         message: node.text, // GoJS использует message, а бэкенд — text
         variableName: node.variableName, // GoJS использует variableName 
+        url: node.url, // GoJS использует url
         // value: node.variableName, // GoJS использует variableValue
         conditions: node.conditions ? node.conditions.map((condition) => ({
             portId: condition.portId,
@@ -209,7 +204,7 @@ if (!process.env.REACT_APP_BACKEND_URL) {
 
 const backendAddr = process.env.REACT_APP_BACKEND_URL || "http://localhost:8080";
 
-function saveDiagramServer(diagramRefObject, projectName) {
+async function saveDiagramServer(diagramRefObject, projectName) {
     if (!projectName) {
         console.error("Project name is undefined");
         alert("Project name is required to save the diagram.");
@@ -228,22 +223,21 @@ function saveDiagramServer(diagramRefObject, projectName) {
     console.log("Transformed data:", transformedData); // Debugging statement
   
     // Отправляем transformedData на сервер
-    fetch(`${backendAddr}/api/project/${projectName}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(transformedData),
-    })
-      .then((response) => response.json())
-      .then((data) => {
+    try {
+        const response = await fetch(`${backendAddr}/api/project/${projectName}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(transformedData),
+        });
+        const data = await response.json();
         console.log("Диаграмма успешно сохранена на сервере!");
-      })
-      .catch((error) => {
+    } catch (error) {
         console.error("Ошибка при сохранении диаграммы:", error);
         alert("Ошибка при сохранении диаграммы.");
-      });
-  }
+    }
+}
 
 function loadDiagramServer(diagramRefObject, projectName) {
     if (!projectName) {

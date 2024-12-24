@@ -54,16 +54,17 @@ const ChatPreview = ({ onClose }) => {
   };
 
   const renderConnectionStatusMessage = () => {
-    const statusStyle = { color: "red", marginTop: "20px" };
     switch (connectionStatus) {
       case "error":
-        return <div style={statusStyle}>Ошибка подключения. Попробуйте снова.</div>;
+        return <div style={{color: "red", marginTop: "20px"}}>Ошибка во время исполнения интерпретатора.</div>;
+      case "connect_error":
+        return <div style={{color: "red", marginTop: "20px"}}>Ошибка подключения. Попробуйте снова.</div>;
       case "reconnecting":
-        return <div style={statusStyle}>Попытка переподключения...</div>;
+        return <div style={{color: "gray", marginTop: "20px"}}>Попытка переподключения...</div>;
       case "reconnect_failed":
-        return <div style={statusStyle}>Не удалось переподключиться. Попробуйте позже.</div>;
+        return <div style={{color: "gray", marginTop: "20px"}}>Не удалось переподключиться. Попробуйте позже.</div>;
       case "disconnected":
-        return <div style={statusStyle}>Соединение потеряно. Переподключитесь.</div>;
+        return <div style={{color: "gray", marginTop: "20px"}}>Чат завершён.</div>;
       default:
         return null;
     }

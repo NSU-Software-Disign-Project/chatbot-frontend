@@ -209,8 +209,10 @@ const Diagram = () => {
 
       {!isChatOpen ? (
       <button
-        onClick={() =>{ saveDiagramServer(diagramRefObject, projectName); 
-                        setIsChatOpen(!isChatOpen) }}
+        onClick={async () => {
+          await saveDiagramServer(diagramRefObject, projectName);
+          setIsChatOpen(true);
+        }}
         style={{
           position: "absolute",
           top: "10px",
@@ -278,8 +280,6 @@ const Diagram = () => {
       )}
     </>
   );
-
-
 };
 
 export default Diagram;

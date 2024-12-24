@@ -36,9 +36,14 @@ class SocketService {
         setConnectionStatus("disconnected");
     });
 
+    this.socket.on("error", (error) => {
+        console.error("Ошибка WebSocket:", error);
+        setConnectionStatus("error");
+    });
+
     this.socket.on("connect_error", (error) => {
         console.error("Ошибка подключения:", error);
-        setConnectionStatus("error");
+        setConnectionStatus("connect_error");
     });
 
     this.socket.on("connect_timeout", () => {
