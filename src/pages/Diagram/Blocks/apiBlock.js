@@ -20,12 +20,12 @@ const saveBlock =$(
       $(go.TextBlock,
         {column: 1, row: 1, editable: true, isMultiline: false, alignment: go.Spot.Center,
           font: "bold 10pt sans-serif", margin: new go.Margin(2, 18), stroke:"#c6d9ef" },
-        new go.Binding("text", "link").makeTwoWay(),
+        new go.Binding("text", "url").makeTwoWay(),
       ),
       $(go.TextBlock,
         {column: 1, row: 2, editable: true, isMultiline: false, alignment: go.Spot.Center,
           font: "bold 10pt sans-serif", margin: new go.Margin(2, 18), stroke:"#c6d9ef" },
-        new go.Binding("text", "variable").makeTwoWay(),
+        new go.Binding("text", "variableName").makeTwoWay(),
       ),
       new go.Panel("Horizontal", { column: 0, row: 1 }).add(
         createPort("IN", go.Spot.Left, true, "#bfcfe5")

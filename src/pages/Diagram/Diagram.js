@@ -105,8 +105,8 @@ const Diagram = () => {
         {
           key: 5,
           category: "apiBlock",
-          variable: "variable",
-          link: "https://api.blockchain.org",
+          variableName: "variable",
+          url: "https://api.blockchain.org",
         },
       ],
       linkDataArray: [],
@@ -151,8 +151,8 @@ const Diagram = () => {
       {
         key: 5,
         category: "apiBlock",
-        variable: "variable",
-        link: "link",
+        variableName: "variable",
+        url: "link",
       },
     ]);
     diagramRefObject.current = diagram;
