@@ -5,10 +5,11 @@ const ChatPreview = ({ onClose }) => {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [inputRequest, setInputRequest] = useState(null);
+  const [connectionStatus, setConnectionStatus] = useState("connecting"); // Статус соединения
 
   // Установить соединение при открытии чата
   useEffect(() => {
-    socketService.connect();
+    socketService.connect(setConnectionStatus, setMessages);
     socketService.startBot("unprocessed");
     console.log("Bot started");
 
@@ -53,15 +54,16 @@ const ChatPreview = ({ onClose }) => {
   };
 
   const renderConnectionStatusMessage = () => {
+    const statusStyle = { color: "red", marginTop: "20px" };
     switch (connectionStatus) {
       case "error":
-        return <div style={{ color: "grey" }}>Ошибка подключения. Попробуйте снова.</div>;
+        return <div style={statusStyle}>Ошибка подключения. Попробуйте снова.</div>;
       case "reconnecting":
-        return <div style={{ color: "grey" }}>Попытка переподключения...</div>;
+        return <div style={statusStyle}>Попытка переподключения...</div>;
       case "reconnect_failed":
-        return <div style={{ color: "grey" }}>Не удалось переподключиться. Попробуйте позже.</div>;
+        return <div style={statusStyle}>Не удалось переподключиться. Попробуйте позже.</div>;
       case "disconnected":
-        return <div style={{ color: "grey" }}>Соединение потеряно. Переподключитесь.</div>;
+        return <div style={statusStyle}>Соединение потеряно. Переподключитесь.</div>;
       default:
         return null;
     }

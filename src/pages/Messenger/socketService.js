@@ -13,7 +13,7 @@ class SocketService {
     }
 
   // Установить соединение
-  connect(url = backendAddr) {
+  connect(setConnectionStatus, setMessages, url = backendAddr) {
     if (this.socket) {
         console.warn("WebSocket уже подключен");
         return;
@@ -28,14 +28,37 @@ class SocketService {
     // Пример обработки события от сервера
     this.socket.on("connect", () => {
         console.log("Соединение установлено с сервером");
+        setConnectionStatus("connected");
     });
 
     this.socket.on("disconnect", () => {
         console.log("Соединение разорвано");
+        setConnectionStatus("disconnected");
     });
 
     this.socket.on("connect_error", (error) => {
         console.error("Ошибка подключения:", error);
+        setConnectionStatus("error");
+    });
+
+    this.socket.on("connect_timeout", () => {
+        console.error("Таймаут подключения WebSocket!");
+        setConnectionStatus("timeout");
+    });
+
+    this.socket.on("reconnect_attempt", () => {
+        console.log("Попытка переподключения...");
+        setConnectionStatus("reconnecting");
+    });
+
+    this.socket.on("reconnect_failed", () => {
+        console.error("Не удалось переподключиться.");
+        setConnectionStatus("reconnect_failed");
+    });
+
+    this.socket.on("start", (initialMessages) => {
+        console.log("Получена история сообщений с сервера:", initialMessages);
+        setMessages(initialMessages);
     });
   }
 

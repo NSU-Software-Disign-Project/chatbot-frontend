@@ -88,7 +88,7 @@ const Diagram = () => {
           key: 2,
           category: "conditionalBlock",
           variableName: "variableName",
-          outputsConds:[{"":"","portId":"OUT"}]
+          conditions:[{"":"","portId":"OUT"}]
         },
         {
           key: 3,
@@ -128,7 +128,7 @@ const Diagram = () => {
         key: 2,
         category: "conditionalBlock",
         variableName: "name",
-        outputsConds:[{"":"","portId":"OUT"}]
+        conditions:[{"":"","portId":"OUT"}]
       },
       {
         key: 3,

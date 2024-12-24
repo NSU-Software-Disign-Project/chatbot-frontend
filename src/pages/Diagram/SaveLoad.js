@@ -101,11 +101,11 @@ function validateCondition(conditionText) {
   function transformToServerFormat(data) {
     const nodeDataArray = data.nodeDataArray.map((node) => {
       if (node.category === "conditionalBlock") {
-        // Преобразуем outputsConds в conditions
+        // Преобразуем conditions в conditions
         const conditions 
-        = !node.outputsConds || node.outputsConds.length < 1 
+        = !node.conditions || node.conditions.length < 1 
         ? [] 
-        : node.outputsConds.map((cond, index) => {
+        : node.conditions.map((cond, index) => {
           const { text, portId } = cond;
           let [operator, conditionValue] = validateCondition(text);
           return {
@@ -138,7 +138,7 @@ function validateCondition(conditionText) {
           type: node.category,
           choises,
         };
-      });
+      };
 
       return {
         id: node.key,
@@ -146,7 +146,7 @@ function validateCondition(conditionText) {
         text: node.message || undefined,
         variableName: node.variableName || undefined,
       };
-    });
+    }) || [];
   
     const linkDataArray = data.linkDataArray ? data.linkDataArray.map((link) => ({
       from: link.from,
@@ -167,7 +167,7 @@ function transformToGoJSFormat(raw) {
         message: node.text, // GoJS использует message, а бэкенд — text
         variableName: node.variableName, // GoJS использует variableName 
         // value: node.variableName, // GoJS использует variableValue
-        outputsConds: node.conditions ? node.conditions.map((condition) => ({
+        conditions: node.conditions ? node.conditions.map((condition) => ({
             portId: condition.portId,
             text: !condition.conditionValue
                   ? "" 
@@ -230,7 +230,7 @@ function saveDiagramServer(diagramRefObject, projectName) {
     })
       .then((response) => response.json())
       .then((data) => {
-        alert("Диаграмма успешно сохранена на сервере!");
+        console.log("Диаграмма успешно сохранена на сервере!");
       })
       .catch((error) => {
         console.error("Ошибка при сохранении диаграммы:", error);
