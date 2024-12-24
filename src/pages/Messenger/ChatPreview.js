@@ -108,8 +108,8 @@ const ChatPreview = ({ onClose }) => {
                   msg.sender === "user"
                     ? "rgb(70, 70, 255)"
                     : msg.sender === "server" || msg.sender === "bot"
-                    ? "#fff"
-                    : "rgb(50, 50, 50)",
+                      ? "#fff"
+                      : "rgb(50, 50, 50)",
                 color:
                   msg.sender === "server" || msg.sender === "bot"
                     ? "#000"
@@ -120,7 +120,7 @@ const ChatPreview = ({ onClose }) => {
             </span>
           </div>
         ))}
-        {renderConnectionStatusMessage()} {}
+        {renderConnectionStatusMessage()} { }
       </div>
 
       <div
