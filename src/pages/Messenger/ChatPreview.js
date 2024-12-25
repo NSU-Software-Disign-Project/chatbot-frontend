@@ -115,6 +115,7 @@ const ChatPreview = ({ onClose }) => {
                   msg.sender === "server" || msg.sender === "bot"
                     ? "#000"
                     : "#fff",
+                whiteSpace: "pre-wrap",
               }}
             >
               {msg.text}
