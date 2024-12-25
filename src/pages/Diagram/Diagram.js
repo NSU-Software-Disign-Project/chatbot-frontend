@@ -1,69 +1,26 @@
-import React, {useEffect, useRef} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import * as go from 'gojs';
 import saveBlock from "./Blocks/saveBlock";
 import messageBlock from "./Blocks/messageBlock";
+import apiBlock from "./Blocks/apiBlock";
 import {createConditionalBlock} from "./Blocks/conditionalBlock";
 import {createOptionsBlock} from "./Blocks/optionsBlock";
 import createPort from "./Blocks/createPort";
 import {createDiagram} from "./Blocks/diagram";
+import { 
+  saveDiagramServer, 
+  loadDiagramServer, 
+  saveDiagramLocally,
+  loadDiagramLocally
+} from "./SaveLoad";
+import ChatPreview from "../Messenger/ChatPreview";
 
 const Diagram = () => {
   const diagramRef = useRef(null);
   const paletteRef = useRef(null);
   const diagramRefObject = useRef(null);
-
-  function saveDiagram() {
-    const diagram = diagramRefObject.current;
-    if (!diagram) {
-      alert("Диаграмма не инициализирована.");
-      return;
-    }
-
-    const json = diagram.model.toJson();
-    const blob = new Blob([json], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "diagram.json";
-    a.click();
-
-    URL.revokeObjectURL(url);
-  }
-
-
-  function loadDiagram() {
-    const fileInput = document.createElement("input");
-    fileInput.type = "file";
-    fileInput.accept = "application/json";
-
-    fileInput.onchange = (event) => {
-      const file = event.target.files[0];
-      if (!file) return;
-
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const json = e.target.result;
-        try {
-          const parsedData = JSON.parse(json);
-          const diagram = diagramRefObject.current;
-
-          if (parsedData && parsedData.nodeDataArray && parsedData.linkDataArray) {
-            diagram.model = go.Model.fromJson(parsedData);
-          } else {
-            alert("Некорректный формат данных файла.");
-          }
-        } catch (error) {
-          alert("Ошибка при чтении файла: " + error.message);
-        }
-      };
-
-      reader.readAsText(file);
-    };
-
-    fileInput.click();
-  }
-
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  
   useEffect(() => {
     const $ = go.GraphObject.make;
     let diagram;
@@ -73,6 +30,7 @@ const Diagram = () => {
     }
 
     diagram.nodeTemplateMap.add("saveBlock", saveBlock);
+    diagram.nodeTemplateMap.add("apiBlock", apiBlock);
     diagram.nodeTemplateMap.add("messageBlock", messageBlock);
     diagram.nodeTemplateMap.add("conditionalBlock", createConditionalBlock(diagram));
     diagram.nodeTemplateMap.add("optionsBlock", createOptionsBlock(diagram));
@@ -94,6 +52,9 @@ const Diagram = () => {
         },
       ).add(createPort("OUT", go.Spot.Right, false, "purple")),
     );
+
+    diagram.div.style.pointerEvents = "auto";
+
 
     diagram.linkTemplate = $(
       go.Link,
@@ -128,20 +89,23 @@ const Diagram = () => {
         {
           key: 2,
           category: "conditionalBlock",
-          value: "valueName",
-          inputs: [{ portId: "IN1" }],
-          outputs: [{ portId: "OUT1" }, { portId: "OUT2" }],
+          variableName: "variable name",
+          conditions:[{"":"","portId":"OUT"}]
         },
         {
           key: 3,
           category: "optionsBlock",
-          additionalTexts: [{ text: "Default Option" }] ,
         },
         {
           key: 4,
           category: "saveBlock",
-          name: "name",
-          value: "value",
+          variableName: "variable name",
+        },
+        {
+          key: 5,
+          category: "apiBlock",
+          variableName: "variable name",
+          url: "https://api.blockchain.org",
         },
       ],
       linkDataArray: [],
@@ -171,20 +135,23 @@ const Diagram = () => {
       {
         key: 2,
         category: "conditionalBlock",
-        value: "variableName",
-        inputs: [{ portId: "IN1" }],
-        outputs: [{ portId: "OUT1" }, { portId: "OUT2" }],
+        variableName: "name",
+        conditions:[{"":"","portId":"OUT"}]
       },
       {
         key: 3,
         category: "optionsBlock",
-        additionalTexts: [{ text: "Default Option" }] ,
       },
       {
         key: 4,
         category: "saveBlock",
-        name: "name",
-        value: "value",
+        variableName: "name",
+      },
+      {
+        key: 5,
+        category: "apiBlock",
+        variableName: "variable",
+        url: "link",
       },
     ]);
     diagramRefObject.current = diagram;
@@ -193,81 +160,124 @@ const Diagram = () => {
       palette.div = null;
     };
   }, []);
+
+  const buttonStyle = {
+    marginRight: '10px',
+    backgroundColor: 'rgb(30,30,30)',
+    color: '#fff',
+    border: 'none',
+    padding: '10px',
+    borderRadius: '5px',
+    cursor: 'pointer',
+    fontWeight: 'bold',
+    boxShadow: '0 2px 10px rgba(0, 0, 0, 0.3)',
+    transition: 'background-color 0.3s ease',
+  };
+
+  const projectName = "unprocessed";
+
   return (
     <>
+      {/* Кнопки управления */}
       <button
-        onClick={saveDiagram}
+        onClick={() => saveDiagramLocally(diagramRefObject)}
+        style={buttonStyle}
+      >
+        Сохранить диаграмму локально
+      </button>
+
+      <button
+        onClick={() => loadDiagramLocally(diagramRefObject)}
+        style={buttonStyle}
+      >
+        Загрузить диаграмму из локального файла
+      </button>
+
+      <button
+        onClick={() => saveDiagramServer(diagramRefObject, projectName)}
+        style={buttonStyle}
+      >
+        Сохранить диаграмму на сервер
+      </button>
+
+      <button
+        onClick={() => loadDiagramServer(diagramRefObject, projectName)}
+        style={buttonStyle}
+      >
+        Загрузить диаграмму с сервера
+      </button>
+
+      {!isChatOpen ? (
+      <button
+        onClick={async () => {
+          await saveDiagramServer(diagramRefObject, projectName);
+          setIsChatOpen(true);
+        }}
         style={{
-          marginRight: "10px",
-          backgroundColor: 'rgb(30,30,30)',
-          color: '#fff',
-          border: 'none',
-          padding: '10px',
-          borderRadius: '5px',
-          cursor: 'pointer',
-          fontWeight: 'bold',
-          boxShadow: '0 2px 10px rgba(0, 0, 0, 0.3)',
-          transition: 'background-color 0.3s ease',
+          position: "absolute",
+          top: "10px",
+          right: "10px",
+          backgroundColor: "rgb(30,30,30)",
+          color: "#fff",
+          border: "none",
+          padding: "10px",
+          borderRadius: "5px",
+          cursor: "pointer",
+          fontWeight: "bold",
+          zIndex: 100,
         }}
       >
-        Сохранить диаграмму
-      </button>
-      <button
-        onClick={loadDiagram}
-        style={{
-          backgroundColor: 'rgb(30,30,30)',
-          color: '#fff',
-          border: 'none',
-          padding: '10px',
-          borderRadius: '5px',
-          cursor: 'pointer',
-          fontWeight: 'bold',
-          boxShadow: '0 2px 10px rgba(0, 0, 0, 0.3)',
-          transition: 'background-color 0.3s ease',
-        }}
-      >
-        Загрузить диаграмму
-      </button>
-      <button
-        // onClick={}
-        style={{
-          backgroundColor: 'rgb(30,30,30)',
-          color: '#fff',
-          border: 'none',
-          padding: '10px',
-          borderRadius: '5px',
-          cursor: 'pointer',
-          fontWeight: 'bold',
-          boxShadow: '0 2px 10px rgba(0, 0, 0, 0.3)',
-          transition: 'background-color 0.3s ease',
-        }}
-      >
-        Запустить бота
-      </button>
-      <div style={{display: 'flex', gap: '0px', height: '100vh'}}>
+        {isChatOpen ? "" : "Запустить бота"}
+      </button>)
+        :
+        (<div></div>)
+
+      }
+
+      {/* Контейнер для диаграммы */}
+      <div style={{ display: "flex", height: "100vh", gap: "0px" }}>
         <div
           ref={paletteRef}
           style={{
-            background: 'rgb(10,10,10)',
-            width: '150px',
-            height: '100vh',
-            borderRight: '1px white',
-            borderStyle: 'dashed',
+            background: "rgb(10,10,10)",
+            width: "150px",
+            height: "100vh",
+            borderRight: "1px dashed white",
             borderRadius: 10,
-            overflowY: 'auto', // Добавляем прокрутку, если содержимое палитры превышает высоту экрана
+            overflowY: "auto",
           }}
-        >
-        </div>
+        ></div>
         <div
           ref={diagramRef}
           style={{
-            background: 'rgb(10,10,10)',
+            background: "rgb(10,10,10)",
             flexGrow: 1,
-            height: '100vh',
+            height: "100vh",
+            overflow: "auto",
+          }}
+        ></div>
+      </div>
+
+
+      {/* Чат — независимый слой HTML */}
+      {isChatOpen && (
+        <div
+          id="chat-container"
+          style={{
+            position: "fixed",
+            right: 0,
+            top: 0,
+            bottom: 0,
+            width: "300px",
+            background: "none",
+            color: "#fff",
+            boxShadow: "-2px 0 10px rgba(0, 0, 0, 0.5)",
+            zIndex: 101,
           }}
         >
+          <ChatPreview onClose={() => setIsChatOpen(false)} />
         </div>
-      </div>
+      )}
     </>
   );
 };

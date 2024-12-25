@@ -1,4 +1,3 @@
-
 export default class chatRenderer {
   constructor(chatContainer) {
     this.chatContainer = chatContainer;

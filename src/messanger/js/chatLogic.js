@@ -1,4 +1,3 @@
-
 export default class chatLogic {
   constructor(renderer) {
     this.renderer = renderer;
@@ -80,7 +79,7 @@ export default class chatLogic {
   }
 
   isEndOfChat() {
-    return this.currentBlockIndex >= thisч.jsonData.length;
+    return this.currentBlockIndex >= this.jsonData.length;
   }
 
   getCurrentBlock() {
