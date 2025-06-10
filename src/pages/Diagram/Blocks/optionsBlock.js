@@ -14,38 +14,47 @@ export const createOptionsBlock = (diagram) => {
         go.Shape,
         "RoundedRectangle",
         {
-          fill: "rgba(254,242,67,0.25)",
-          stroke: "yellow",
+          fill: "rgba(254, 242, 67, 0.25)", // Жёлтый фон с прозрачностью
+          stroke: "#ffcc00", // Ярко-желтая обводка
           strokeWidth: 2,
         }
       ),
       $(
         go.Panel,
         "Vertical",
-        { alignment: go.Spot.TopLeft, margin: 5 },
+        { alignment: go.Spot.TopLeft, margin: 10 },
         $(
           go.TextBlock,
           {
-            margin: new go.Margin(5, 0),
-            font: "bold 8pt sans-serif",
-            stroke: "rgba(255, 250, 175, 1)",
+            margin: new go.Margin(8, 0),
+            font: "bold 14pt sans-serif",
+            stroke: "#fff", // Белый текст
             text: "Options Block",
           }
         ),
-        new go.Panel("Table")
+        $(
+          go.Panel,
+          "Table"
+        )
           .addColumnDefinition(0, { alignment: go.Spot.Left })
           .addColumnDefinition(1, { alignment: go.Spot.Center })
           .addColumnDefinition(2, { alignment: go.Spot.Right })
           .add(
-            new go.Panel("Horizontal", {  column: 0, row: 0 }).add(
-              createPort("IN", go.Spot.Left, true, "yellow")
+            new go.Panel("Horizontal", { column: 0, row: 0 }).add(
+              createPort("IN", go.Spot.Left, true, "#ffcc00")
             ),
-            $(go.TextBlock,
-              {column: 1, row: 0, editable: false, isMultiline: false, alignment: go.Spot.Center,
-                font: "bold 10pt sans-serif", margin: new go.Margin(0, 0, 4, 4), stroke:"rgba(204, 255, 209, 0)", text: "Conditional", },
-            ),
+            $(go.TextBlock, {
+              column: 1,
+              row: 0,
+              editable: false,
+              isMultiline: false,
+              alignment: go.Spot.Center,
+              font: "bold 10pt sans-serif",
+              margin: new go.Margin(4, 16),
+              stroke: "#fff", // Белый текст
+              text: "Conditional",
+            })
           ),
-
         $(
           go.Panel,
           "Vertical",
@@ -54,6 +63,7 @@ export const createOptionsBlock = (diagram) => {
             name: "CONDITIONS_PANEL",
             defaultAlignment: go.Spot.Left,
             stretch: go.GraphObject.Horizontal,
+            margin: new go.Margin(10, 0),
           },
           new go.Binding("itemArray", "options").makeTwoWay(),
           {
@@ -64,8 +74,8 @@ export const createOptionsBlock = (diagram) => {
               $(
                 go.TextBlock,
                 {
-                  font: "bold 8pt sans-serif",
-                  stroke: "rgba(255, 250, 175, 1)",
+                  font: "bold 12pt sans-serif",
+                  stroke: "#fff", // Белый текст
                   editable: true,
                   isMultiline: false,
                   margin: new go.Margin(2, 10, 2, 0),
@@ -78,7 +88,7 @@ export const createOptionsBlock = (diagram) => {
                 {
                   width: 8,
                   height: 8,
-                  fill: "yellow",
+                  fill: "#ffcc00", // Цвет порта
                   stroke: null,
                   fromSpot: go.Spot.Right,
                   fromLinkable: true,
@@ -91,47 +101,41 @@ export const createOptionsBlock = (diagram) => {
         )
       )
     ),
-
     {
       contextMenu: $(
         go.Adornment,
         "Vertical",
         $(
           "ContextMenuButton",
-          $(go.TextBlock, "Добавить опцию"),
+          $(go.TextBlock, "Добавить опцию", { stroke: "#333" }),
           {
             click: (e, obj) => {
-              const node = obj.part; // Текущий узел
+              const node = obj.part;
               const model = diagram.model;
 
               model.startTransaction("Добавить опцию");
-
               const options = node.data.options || [];
               const newPortId = `OUT${options.length}`;
-              const newCondition = { text: `Options ${options.length + 1}`, portId: newPortId };
-
-              model.setDataProperty(node.data, "options", [...options, newCondition]);
-
+              const newOption = { text: `Option ${options.length + 1}`, portId: newPortId };
+              model.setDataProperty(node.data, "options", [...options, newOption]);
               model.commitTransaction("Добавить опцию");
             },
           }
         ),
         $(
           "ContextMenuButton",
-          $(go.TextBlock, "Убрать опцию"),
+          $(go.TextBlock, "Убрать опцию", { stroke: "#333" }),
           {
             click: (e, obj) => {
-              const node = obj.part; // Текущий узел
+              const node = obj.part;
               const model = diagram.model;
 
               model.startTransaction("Убрать опцию");
-
               const options = node.data.options || [];
               if (options.length > 0) {
-                options.pop(); 
+                options.pop();
                 model.setDataProperty(node.data, "options", [...options]);
               }
-
               model.commitTransaction("Убрать опцию");
             },
           }

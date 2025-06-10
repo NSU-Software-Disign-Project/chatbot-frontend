@@ -7,9 +7,9 @@ import {createConditionalBlock} from "./Blocks/conditionalBlock";
 import {createOptionsBlock} from "./Blocks/optionsBlock";
 import createPort from "./Blocks/createPort";
 import {createDiagram} from "./Blocks/diagram";
-import { 
-  saveDiagramServer, 
-  loadDiagramServer, 
+import {
+  saveDiagramServer,
+  loadDiagramServer,
   saveDiagramLocally,
   loadDiagramLocally
 } from "./SaveLoad";
@@ -20,7 +20,7 @@ const Diagram = () => {
   const paletteRef = useRef(null);
   const diagramRefObject = useRef(null);
   const [isChatOpen, setIsChatOpen] = useState(false);
-  
+
   useEffect(() => {
     const $ = go.GraphObject.make;
     let diagram;
@@ -37,20 +37,34 @@ const Diagram = () => {
     diagram.nodeTemplate = $(
       go.Node,
       "Auto",
-      $(go.Shape, "RoundedRectangle", {stroke: "purple", strokeWidth: 2, fill:"rgba(173,0,255,0.25)" }),
-      new go.TextBlock(
-        { text:"Start Block",
-          column: 0, row: 0, columnSpan: 4, alignment: go.Spot.Center,
-          font: "bold 8pt sans-serif", margin: new go.Margin(4, 10, 0, 0), stroke:"#F99EFF"}
-      ),
-      $(
-        go.Panel,
-        "Vertical",
-        {
-          alignment: go.Spot.Right,
-          alignmentFocus: go.Spot.Right,
-        },
-      ).add(createPort("OUT", go.Spot.Right, false, "purple")),
+      // Фон и обводка
+      $(go.Shape, "RoundedRectangle", {
+        fill: "rgba(93, 0, 255, 0.25)", // Темно-фиолетовый с прозрачностью
+        stroke: "#7d3cff", // Ярко-фиолетовая обводка
+        strokeWidth: 2,
+      }),
+      // Панель содержимого
+      $(go.Panel, "Table")
+        .addColumnDefinition(0, { alignment: go.Spot.Left })
+        .addColumnDefinition(1, { alignment: go.Spot.Center })
+        .addColumnDefinition(2, { alignment: go.Spot.Right })
+        .add(
+          // Название блока
+          new go.TextBlock({
+            column: 0,
+            row: 0,
+            columnSpan: 3,
+            alignment: go.Spot.Center,
+            text: "Start Block",
+            font: "bold 14pt sans-serif", // Увеличенный шрифт
+            margin: new go.Margin(8, 16), // Больше отступов
+            stroke: "#fff", // Белый текст
+          }),
+          // Выходной порт
+          new go.Panel("Horizontal", { column: 2, row: 0 }).add(
+            createPort("OUT", go.Spot.Right, false, "#7d3cff") // Цвет порта
+          )
+        )
     );
 
     diagram.div.style.pointerEvents = "auto";
@@ -118,7 +132,7 @@ const Diagram = () => {
       }),
       nodeTemplateMap: diagram.nodeTemplateMap,
       contentAlignment: go.Spot.Center,
-      padding: new go.Margin(20, 0, 20, 0),
+      padding: new go.Margin(0, 0, 20, 0),
       allowZoom: false,
     });
 
@@ -135,7 +149,7 @@ const Diagram = () => {
       {
         key: 2,
         category: "conditionalBlock",
-        variableName: "name",
+        variableName: "variable name",
         conditions:[{"":"","portId":"OUT"}]
       },
       {
@@ -145,7 +159,7 @@ const Diagram = () => {
       {
         key: 4,
         category: "saveBlock",
-        variableName: "name",
+        variableName: "variable name",
       },
       {
         key: 5,
@@ -163,7 +177,7 @@ const Diagram = () => {
 
   const buttonStyle = {
     marginRight: '10px',
-    backgroundColor: 'rgb(30,30,30)',
+    backgroundColor: '#7d3cff',
     color: '#fff',
     border: 'none',
     padding: '10px',
@@ -178,79 +192,49 @@ const Diagram = () => {
 
   return (
     <>
-      {/* Кнопки управления */}
-      <button
-        onClick={() => saveDiagramLocally(diagramRefObject)}
-        style={buttonStyle}
-      >
-        Сохранить диаграмму локально
-      </button>
+      <div style={{backgroundColor: '#1e1e1e'}}>
+        <button style={
+          {...buttonStyle}
+        } onClick={() => saveDiagramLocally(diagramRefObject)}>
+          Сохранить локально
+        </button>
+        <button style={buttonStyle} onClick={() => loadDiagramLocally(diagramRefObject)}>
+          Загрузить локально
+        </button>
 
-      <button
-        onClick={() => loadDiagramLocally(diagramRefObject)}
-        style={buttonStyle}
-      >
-        Загрузить диаграмму из локального файла
-      </button>
+        <button style={buttonStyle} onClick={() => saveDiagramServer(diagramRefObject, projectName)}>
+          Сохранить на сервер
+        </button>
+        <button style={buttonStyle} onClick={() => loadDiagramServer(diagramRefObject, projectName)}>
+          Загрузить с сервера
+        </button>
 
-      <button
-        onClick={() => saveDiagramServer(diagramRefObject, projectName)}
-        style={buttonStyle}
-      >
-        Сохранить диаграмму на сервер
-      </button>
-
-      <button
-        onClick={() => loadDiagramServer(diagramRefObject, projectName)}
-        style={buttonStyle}
-      >
-        Загрузить диаграмму с сервера
-      </button>
-
-      {!isChatOpen ? (
-      <button
-        onClick={async () => {
+        <button style={buttonStyle} onClick={async () => {
           await saveDiagramServer(diagramRefObject, projectName);
           setIsChatOpen(true);
         }}
-        style={{
-          position: "absolute",
-          top: "10px",
-          right: "10px",
-          backgroundColor: "rgb(30,30,30)",
-          color: "#fff",
-          border: "none",
-          padding: "10px",
-          borderRadius: "5px",
-          cursor: "pointer",
-          fontWeight: "bold",
-          zIndex: 100,
-        }}
-      >
-        {isChatOpen ? "" : "Запустить бота"}
-      </button>)
-        :
-        (<div></div>)
+        > Запустить бота
+        </button>
+      </div>
 
-      }
-
-      {/* Контейнер для диаграммы */}
-      <div style={{ display: "flex", height: "100vh", gap: "0px" }}>
+      <div style={{display: "flex", height: "100vh", gap: "0px"}}>
         <div
           ref={paletteRef}
           style={{
-            background: "rgb(10,10,10)",
-            width: "150px",
-            height: "100vh",
-            borderRight: "1px dashed white",
-            borderRadius: 10,
-            overflowY: "auto",
+            width: '240px',
+            background: '#111',
+            borderRadius: '12px',
+            padding: '20px',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+            height: '100%'
           }}
-        ></div>
+        >
+
+        </div>
         <div
           ref={diagramRef}
           style={{
-            background: "rgb(10,10,10)",
+            background: "#1e1e1e",
             flexGrow: 1,
             height: "100vh",
             overflow: "auto",
@@ -258,28 +242,27 @@ const Diagram = () => {
         ></div>
       </div>
 
-
-      {/* Чат — независимый слой HTML */}
-      {isChatOpen && (
-        <div
-          id="chat-container"
-          style={{
-            position: "fixed",
-            right: 0,
-            top: 0,
-            bottom: 0,
-            width: "300px",
-            background: "none",
-            color: "#fff",
-            boxShadow: "-2px 0 10px rgba(0, 0, 0, 0.5)",
-            zIndex: 101,
-          }}
-        >
-          <ChatPreview onClose={() => setIsChatOpen(false)} />
-        </div>
-      )}
-    </>
-  );
+      {
+        isChatOpen && (
+          <div
+            id="chat-container"
+            style={{
+              position: "fixed",
+              right: 0,
+              top: 0,
+              bottom: 0,
+              width: "300px",
+              background: "#1e1e1e",
+              color: "#fff",
+              boxShadow: "-2px 0 10px rgba(0, 0, 0, 0.5)",
+              zIndex: 101,
+            }}
+          >
+            <ChatPreview onClose={() => setIsChatOpen(false)}/>
+          </div>
+        )
+      }
+    </>);
 };
 
 export default Diagram;
