@@ -1,78 +1,92 @@
-import React, { useState } from 'react';
-import './style.css';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from "react";
+import "./style.css";
+import { useNavigate } from "react-router-dom";
 import AnimatedLogo from "../Homepage/AnimatedLogo";
 
 function AuthForm() {
   const [isLogin, setIsLogin] = useState(false);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [name, setName] = useState(''); // Только для регистрации
-  const [error, setError] = useState(''); // Для отображения ошибок
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [name, setName] = useState(""); // Только для регистрации
+  const [error, setError] = useState(""); // Для отображения ошибок
+  const [success, setSuccess] = useState(""); // Для отображения успешных действий
   const navigate = useNavigate();
 
   const toggleForm = () => {
     setIsLogin((prev) => !prev);
-    setError('');
+    setError("");
+    setSuccess("");
+    setEmail("");
+    setPassword("");
+    setName("");
   };
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    setError('');
+    setError("");
+    setSuccess("");
 
     try {
-      const response = await fetch('http://localhost:8080/auth/login', {
-        method: 'POST',
+      const response = await fetch("http://localhost:8080/auth/login", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({ email, password }),
       });
 
       if (!response.ok) {
-        throw new Error('Ошибка авторизации');
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Ошибка авторизации");
       }
 
       const data = await response.json();
-      console.log('Вход успешен:', data);
+      console.log("Вход успешен:", data);
 
       // Сохраняем токен в localStorage (если приходит)
       if (data.token) {
-        localStorage.setItem('token', data.token);
+        localStorage.setItem("token", data.token);
       }
 
-      navigate('/me');
+      navigate("/me");
     } catch (err) {
-      setError('Неверный email или пароль');
+      setError(err.message || "Неверный email или пароль");
+      setSuccess("");
       console.error(err);
     }
   };
 
   const handleRegister = async (e) => {
     e.preventDefault();
-    setError('');
+    setError("");
+    setSuccess("");
 
     try {
-      const response = await fetch('http://localhost:8080/auth/register', {
-        method: 'POST',
+      const response = await fetch("http://localhost:8080/auth/register", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({ email, name, password }),
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Регистрация не удалась');
+        throw new Error(errorData.message || "Регистрация не удалась");
       }
 
       const data = await response.json();
-      console.log('Регистрация успешна:', data);
+      console.log("Регистрация успешна:", data);
 
       // Автоматически переключаемся на форму входа после регистрации
-      navigate('/me');
+      setIsLogin(true);
+      setSuccess("Регистрация успешна! Теперь войдите.");
+      setEmail("");
+      setPassword("");
+      setName("");
     } catch (err) {
-      setError(err.message || 'Произошла ошибка');
+      setError(err.message || "Произошла ошибка");
+      setSuccess("");
       console.error(err);
     }
   };
@@ -81,13 +95,14 @@ function AuthForm() {
     <div className="auth-container">
       {/* Фон с логотипом */}
       <div className="background-logo">
-        <AnimatedLogo/>
+        <AnimatedLogo />
       </div>
 
       {/* Форма поверх фона */}
       <div className="form-wrapper">
-        <h2>{isLogin ? 'Войти' : 'Регистрация'}</h2>
+        <h2>{isLogin ? "Войти" : "Регистрация"}</h2>
         {error && <p className="error-message">{error}</p>}
+        {success && <p className="success-message">{success}</p>}
 
         <form onSubmit={isLogin ? handleLogin : handleRegister}>
           <input
@@ -99,7 +114,7 @@ function AuthForm() {
 
           {!isLogin && (
             <input
-              placeholder="Login"
+              placeholder="Name"
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
@@ -114,15 +129,18 @@ function AuthForm() {
             required
           />
 
-          <button type="submit">{isLogin ? 'Войти' : 'Зарегистрироваться'}</button>
+          <button type="submit">
+            {isLogin ? "Войти" : "Зарегистрироваться"}
+          </button>
         </form>
 
         <p className="switch-link" onClick={toggleForm}>
-          {isLogin ? 'Нет аккаунта? Зарегистрируйтесь' : 'Уже есть аккаунт? Войдите'}
+          {isLogin
+            ? "Нет аккаунта? Зарегистрируйтесь"
+            : "Уже есть аккаунт? Войдите"}
         </p>
       </div>
     </div>
-
   );
 }
 

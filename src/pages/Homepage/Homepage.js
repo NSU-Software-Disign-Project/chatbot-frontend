@@ -1,7 +1,7 @@
-import React from 'react';
-import './Homepage.css';
+import React from "react";
+import "./Homepage.css";
 import { useNavigate } from "react-router-dom";
-import AnimatedLogo from './AnimatedLogo'; // Путь зависит от структуры проекта
+import AnimatedLogo from "./AnimatedLogo"; // Путь зависит от структуры проекта
 
 function Homepage() {
   const navigate = useNavigate();
@@ -16,12 +16,14 @@ function Homepage() {
 
       {/* Основной контент */}
       <div className="content">
-        <h1 className='chatbotTittle'>ChatBot Constructor</h1>
-        <p className='chatbotDescrition'>
+        <h1 className="chatbotTittle">ChatBot Constructor</h1>
+        <p className="chatbotDescrition">
           Simple chatbot constructor provided by drag'n'drop interface
         </p>
-        <div className='buttonContainer'>
-          <button onClick={handleClick} className='button'>/start</button>
+        <div className="buttonContainer">
+          <button onClick={handleClick} className="button">
+            /start
+          </button>
         </div>
       </div>
     </div>
