@@ -192,7 +192,15 @@ const Diagram = () => {
 
   return (
     <>
-      <div style={{backgroundColor: '#1e1e1e'}}>
+      <div style={{backgroundColor: '#1e1e1e', display: 'flex', flexDirection: 'row', height: '7vh'}}>
+        <button style={{
+          ...buttonStyle,
+          width: '140px',           // Фиксированная ширина
+          padding: '0',            // Убираем внутренние отступы
+          justifyContent: 'center' // Центрируем текст внутри кнопки
+        }}>
+        &lt;
+        </button>
         <button style={
           {...buttonStyle}
         } onClick={() => saveDiagramLocally(diagramRefObject)}>

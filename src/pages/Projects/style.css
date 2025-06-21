@@ -1,0 +1,102 @@
+.projects-container {
+    font-family: 'Segoe UI', sans-serif;
+    background-color: rgb(10, 10, 10);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 40px;
+}
+
+.user-info h2 {
+    margin-bottom: 5px;
+    font-size: 1.8rem;
+}
+
+.email {
+    font-size: 1rem;
+    color: var(--input-text);
+}
+
+.projects-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 30px;
+    margin-bottom: 20px;
+}
+
+.projects-header h3 {
+    margin: 0;
+}
+
+.create-button {
+    padding: 10px 16px;
+    background-color: #4f46e5;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.create-button:hover {
+    background-color: #3730a3;
+}
+
+.projects-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 20px;
+}
+
+.project-card {
+    background-color: var(--card-bg);
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.project-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+}
+
+.project-card h4 {
+    margin: 0 0 10px;
+}
+
+.last-edited {
+    font-size: 0.9rem;
+    color: var(--input-text);
+}
+.loading,
+.error {
+    text-align: center;
+    font-size: 1.2rem;
+    margin-top: 40px;
+}
+
+.error {
+    color: red;
+}
+
+/* Цвета по умолчанию (светлая тема) */
+:root {
+    --bg: #121212;
+    --card-bg: #1e1e1e;
+    --text: #eee;
+    --input-bg: #2c2c2c;
+    --input-text: #aaa;
+}
+
+/* Темная тема */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg: #121212;
+        --card-bg: #1e1e1e;
+        --text: #eee;
+        --input-bg: #2c2c2c;
+        --input-text: #aaa;
+    }
+}
