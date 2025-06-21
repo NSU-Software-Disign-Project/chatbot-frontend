@@ -5,7 +5,7 @@ import AnimatedLogo from './AnimatedLogo'; // Путь зависит от ст�
 
 function Homepage() {
   const navigate = useNavigate();
-  const handleClick = () => navigate(`/auth`);
+  const handleClick = () => navigate(`/login`);
 
   return (
     <div className="homePageContainer">

@@ -18,7 +18,7 @@ const ProjectsPage = () => {
     const fetchUserData = async () => {
       const token = localStorage.getItem('token');
       if (!token) {
-        navigate('/auth'); // Перенаправляем на авторизацию, если токена нет
+        navigate('/login'); // Перенаправляем на авторизацию, если токена нет
         return;
       }
 
@@ -87,7 +87,7 @@ const ProjectsPage = () => {
       }
       localStorage.removeItem('token');
     }
-    navigate('/auth');
+    navigate('/login');
   };
 
   if (loading) {
@@ -101,9 +101,11 @@ const ProjectsPage = () => {
   return (
     <div className="projects-container">
       <div className="user-info">
-        <h2>Привет, {user.name || 'Пользователь'} 👋</h2>
-        <p className="email">{user.email}</p>
-        <button className="logout-button" onClick={handleLogout}>Выйти</button>
+        <div className="user-info-row">
+          <h2>Привет, {user.name || 'Пользователь'} 👋</h2>
+          <span className="email">{user.email}</span>
+          <button className="logout-button" onClick={handleLogout}>Выйти</button>
+        </div>
       </div>
 
       <div className="projects-header">

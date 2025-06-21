@@ -4,6 +4,7 @@
     color: var(--text);
     min-height: 100vh;
     padding: 40px;
+    padding-left: 120px;
 }
 
 .user-info h2 {
@@ -98,5 +99,58 @@
         --text: #eee;
         --input-bg: #2c2c2c;
         --input-text: #aaa;
+    }
+}
+
+.user-info {
+    margin-bottom: 32px;
+}
+.user-info-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    justify-content: space-between;
+}
+.user-info-row h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+.user-info-row .email {
+    color: var(--input-text);
+    font-size: 1rem;
+    font-weight: 400;
+    margin: 0 8px;
+    white-space: nowrap;
+}
+.logout-button {
+    padding: 8px 18px;
+    background: #23214a;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s, box-shadow 0.2s;
+    box-shadow: 0 2px 8px #0002;
+    margin-top: 2px;
+    margin-left: 16px;
+    width: 100px;
+}
+.logout-button:hover {
+    background: #4f46e5;
+}
+@media (max-width: 600px) {
+    .user-info-row {
+        gap: 8px;
+    }
+    .user-info-row .email {
+        font-size: 0.95rem;
+    }
+    .logout-button {
+        width: auto;
+        margin-left: 0;
+        margin-top: 8px;
     }
 }

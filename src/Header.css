@@ -1,0 +1,27 @@
+.header-logo-btn {
+  position: fixed;
+  top: 24px;
+  left: 24px;
+  width: 56px;
+  height: 56px;
+  background: rgb(20, 20, 20);
+  border-radius: 50%;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 1000;
+  border: none;
+  outline: none;
+  transition: box-shadow 0.2s, background 0.2s;
+}
+.header-logo-btn:hover {
+  box-shadow: 0 4px 16px #5d45fc99;
+  background: #23214a;
+}
+.header-logo-img {
+  width: 36px;
+  height: 36px;
+  display: block;
+} 
