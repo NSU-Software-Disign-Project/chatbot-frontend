@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './style.css';
 import { useNavigate } from 'react-router-dom';
 import AnimatedLogo from "../Homepage/AnimatedLogo";
+
+const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8080';
 
 function AuthForm() {
   const [isLogin, setIsLogin] = useState(false);
@@ -10,6 +12,13 @@ function AuthForm() {
   const [name, setName] = useState(''); // Только для регистрации
   const [error, setError] = useState(''); // Для отображения ошибок
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      navigate('/me');
+    }
+  }, [navigate]);
 
   const toggleForm = () => {
     setIsLogin((prev) => !prev);
@@ -21,7 +30,7 @@ function AuthForm() {
     setError('');
 
     try {
-      const response = await fetch('http://localhost:8080/auth/login', {
+      const response = await fetch(`${backendUrl}/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -30,20 +39,20 @@ function AuthForm() {
       });
 
       if (!response.ok) {
-        throw new Error('Ошибка авторизации');
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Ошибка авторизации');
       }
 
       const data = await response.json();
       console.log('Вход успешен:', data);
 
-      // Сохраняем токен в localStorage (если приходит)
       if (data.token) {
         localStorage.setItem('token', data.token);
       }
 
       navigate('/me');
     } catch (err) {
-      setError('Неверный email или пароль');
+      setError(err.message || 'Неверный email или пароль');
       console.error(err);
     }
   };
@@ -53,7 +62,7 @@ function AuthForm() {
     setError('');
 
     try {
-      const response = await fetch('http://localhost:8080/auth/register', {
+      const response = await fetch(`${backendUrl}/auth/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -63,13 +72,15 @@ function AuthForm() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Регистрация не удалась');
+        throw new Error(errorData.error || 'Регистрация не удалась');
       }
 
       const data = await response.json();
       console.log('Регистрация успешна:', data);
 
-      // Автоматически переключаемся на форму входа после регистрации
+      if (data.token) {
+        localStorage.setItem('token', data.token);
+      }
       navigate('/me');
     } catch (err) {
       setError(err.message || 'Произошла ошибка');

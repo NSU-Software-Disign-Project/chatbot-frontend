@@ -224,18 +224,28 @@ async function saveDiagramServer(diagramRefObject, projectName) {
   
     // Отправляем transformedData на сервер
     try {
-        const response = await fetch(`${backendAddr}/api/project/${projectName}`, {
-            method: 'POST',
+        const projectData = {
+          name: projectName,
+          nodeDataArray: diagram.model.nodeDataArray,
+          linkDataArray: diagram.model.linkDataArray,
+        };
+        const response = await fetch(
+          `${backendAddr}/api/project/${projectName}`,
+          {
+            method: "POST",
             headers: {
-                'Content-Type': 'application/json',
+              "Content-Type": "application/json",
             },
-            body: JSON.stringify(transformedData),
-        });
-        const data = await response.json();
-        console.log("Диаграмма успешно сохранена на сервере!");
+            body: JSON.stringify(projectData),
+          }
+        );
+        if (!response.ok) {
+          throw new Error("Failed to save diagram to server");
+        }
+        alert("Diagram saved successfully!");
     } catch (error) {
-        console.error("Ошибка при сохранении диаграммы:", error);
-        alert("Ошибка при сохранении диаграммы.");
+        console.error(error);
+        alert("Failed to save diagram");
     }
 }
 

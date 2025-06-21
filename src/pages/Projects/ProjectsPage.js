@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import './style.css';
 import { useNavigate } from 'react-router-dom';
 
+const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8080';
+
 const ProjectsPage = () => {
   const navigate = useNavigate();
 
@@ -22,7 +24,7 @@ const ProjectsPage = () => {
 
       try {
         // Получаем информацию о пользователе
-        const userResponse = await fetch('http://localhost:8080/user/me', {
+        const userResponse = await fetch(`${backendUrl}/user/me`, {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -37,7 +39,7 @@ const ProjectsPage = () => {
         console.log(user);
 
         // Получаем список проектов
-        const projectsResponse = await fetch('http://localhost:8080/user/my-projects', {
+        const projectsResponse = await fetch(`${backendUrl}/user/my-projects`, {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -70,6 +72,24 @@ const ProjectsPage = () => {
     alert('Создать новый проект');
   };
 
+  const handleLogout = async () => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      try {
+        await fetch(`${backendUrl}/auth/logout`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+      } catch (e) {
+        // ignore
+      }
+      localStorage.removeItem('token');
+    }
+    navigate('/auth');
+  };
+
   if (loading) {
     return <div className="loading">Загрузка...</div>;
   }
@@ -83,6 +103,7 @@ const ProjectsPage = () => {
       <div className="user-info">
         <h2>Привет, {user.name || 'Пользователь'} 👋</h2>
         <p className="email">{user.email}</p>
+        <button className="logout-button" onClick={handleLogout}>Выйти</button>
       </div>
 
       <div className="projects-header">

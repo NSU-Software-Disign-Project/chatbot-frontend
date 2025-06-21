@@ -7,6 +7,8 @@ import {createConditionalBlock} from "./Blocks/conditionalBlock";
 import {createOptionsBlock} from "./Blocks/optionsBlock";
 import createPort from "./Blocks/createPort";
 import {createDiagram} from "./Blocks/diagram";
+import loopStartBlock from "./Blocks/loopStartBlock";
+import loopEndBlock from "./Blocks/loopEndBlock";
 import {
   saveDiagramServer,
   loadDiagramServer,
@@ -34,6 +36,8 @@ const Diagram = () => {
     diagram.nodeTemplateMap.add("messageBlock", messageBlock);
     diagram.nodeTemplateMap.add("conditionalBlock", createConditionalBlock(diagram));
     diagram.nodeTemplateMap.add("optionsBlock", createOptionsBlock(diagram));
+    diagram.nodeTemplateMap.add("loopStartBlock", loopStartBlock);
+    diagram.nodeTemplateMap.add("loopEndBlock", loopEndBlock);
     diagram.nodeTemplate = $(
       go.Node,
       "Auto",
@@ -57,12 +61,12 @@ const Diagram = () => {
             alignment: go.Spot.Center,
             text: "Start Block",
             font: "bold 14pt sans-serif", // Увеличенный шрифт
-            margin: new go.Margin(8, 16), // Больше отступов
+            margin: new go.Margin(8, 16),
             stroke: "#fff", // Белый текст
           }),
           // Выходной порт
           new go.Panel("Horizontal", { column: 2, row: 0 }).add(
-            createPort("OUT", go.Spot.Right, false, "#7d3cff") // Цвет порта
+            createPort("OUT", go.Spot.Right, false, "#7d3cff")
           )
         )
     );
@@ -98,31 +102,63 @@ const Diagram = () => {
         {
           key: 1,
           category: "messageBlock",
-          message:"Text message"
+          message:"Добро пожаловать! Я бот с поддержкой циклов."
         },
         {
           key: 2,
-          category: "conditionalBlock",
-          variableName: "variable name",
-          conditions:[{"":"","portId":"OUT"}]
+          category: "saveBlock",
+          variableName: "userName",
         },
         {
           key: 3,
-          category: "optionsBlock",
+          category: "messageBlock",
+          message:"Привет, ${userName}! Сейчас начнется цикл."
         },
         {
           key: 4,
-          category: "saveBlock",
-          variableName: "variable name",
+          category: "loopStartBlock",
+          loopVariable: "counter",
+          loopOperator: "<",
+          loopValue: "3",
+          maxIterations: "5",
         },
         {
           key: 5,
-          category: "apiBlock",
-          variableName: "variable name",
-          url: "https://api.blockchain.org",
+          category: "messageBlock",
+          message:"Итерация ${counter} из цикла"
+        },
+        {
+          key: 6,
+          category: "saveBlock",
+          variableName: "userInput",
+        },
+        {
+          key: 7,
+          category: "messageBlock",
+          message:"Вы ввели: ${userInput}"
+        },
+        {
+          key: 8,
+          category: "loopEndBlock",
+        },
+        {
+          key: 9,
+          category: "messageBlock",
+          message:"Цикл завершен! До свидания, ${userName}!"
         },
       ],
-      linkDataArray: [],
+      linkDataArray: [
+        { from: 0, to: 1 },
+        { from: 1, to: 2 },
+        { from: 2, to: 3 },
+        { from: 3, to: 4 },
+        { from: 4, to: 5 },
+        { from: 5, to: 6 },
+        { from: 6, to: 7 },
+        { from: 7, to: 8 },
+        { from: 8, to: 4 }, // Обратная связь к началу цикла
+        { from: 8, to: 9 }, // Выход из цикла
+      ],
     });
 
     const palette = $(go.Palette, paletteRef.current, {
@@ -167,6 +203,18 @@ const Diagram = () => {
         variableName: "variable",
         url: "link",
       },
+      {
+        key: 6,
+        category: "loopStartBlock",
+        loopVariable: "counter",
+        loopOperator: "<",
+        loopValue: "5",
+        maxIterations: "10",
+      },
+      {
+        key: 7,
+        category: "loopEndBlock",
+      },
     ]);
     diagramRefObject.current = diagram;
     return () => {
@@ -192,15 +240,7 @@ const Diagram = () => {
 
   return (
     <>
-      <div style={{backgroundColor: '#1e1e1e', display: 'flex', flexDirection: 'row', height: '7vh'}}>
-        <button style={{
-          ...buttonStyle,
-          width: '140px',           // Фиксированная ширина
-          padding: '0',            // Убираем внутренние отступы
-          justifyContent: 'center' // Центрируем текст внутри кнопки
-        }}>
-        &lt;
-        </button>
+      <div style={{backgroundColor: '#1e1e1e'}}>
         <button style={
           {...buttonStyle}
         } onClick={() => saveDiagramLocally(diagramRefObject)}>

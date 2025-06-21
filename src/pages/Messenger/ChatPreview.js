@@ -5,7 +5,8 @@ const ChatPreview = ({ onClose }) => {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [inputRequest, setInputRequest] = useState(null);
-  const [connectionStatus, setConnectionStatus] = useState("connecting"); // Статус соединения
+  const [connectionStatus, setConnectionStatus] = useState("connecting");
+  const [botStatus, setBotStatus] = useState("active");
 
   // Установить соединение при открытии чата
   useEffect(() => {
@@ -44,10 +45,19 @@ const ChatPreview = ({ onClose }) => {
     setMessages((prevMessages) => [...prevMessages, userMessage]);
 
     if (inputRequest) {
-      socketService.sendInputResponse(input.trim()); // Отправка ответа на запрос ввода
+      socketService.sendInputResponse(input.trim());
       setInputRequest(null);
     } else {
-      socketService.sendMessage(input.trim()); // Отправка сообщения на сервер
+      socketService.sendMessage(input.trim());
+      
+      // Обновляем статус бота при командах
+      if (input.trim().startsWith('/')) {
+        if (input.trim() === '/stop') {
+          setBotStatus("stopped");
+        } else if (input.trim() === '/restart') {
+          setBotStatus("active");
+        }
+      }
     }
 
     setInput("");
@@ -70,6 +80,25 @@ const ChatPreview = ({ onClose }) => {
     }
   };
 
+  const renderBotStatus = () => {
+    const statusColor = botStatus === "active" ? "#4CAF50" : "#f44336";
+    const statusText = botStatus === "active" ? "Активен" : "Остановлен";
+    
+    return (
+      <div style={{
+        padding: "8px 12px",
+        backgroundColor: statusColor,
+        color: "white",
+        borderRadius: "4px",
+        fontSize: "12px",
+        fontWeight: "bold",
+        marginBottom: "10px"
+      }}>
+        Статус бота: {statusText}
+      </div>
+    );
+  };
+
   return (
     <div
       style={{
@@ -78,13 +107,37 @@ const ChatPreview = ({ onClose }) => {
         top: 0,
         bottom: 0,
         width: "300px",
-        background: "rgba(30,30,30, 0.3)",
+        background: "rgba(30,30,30, 0.95)",
         color: "#fff",
         display: "flex",
         flexDirection: "column",
         boxShadow: "-2px 0 10px rgba(0, 0, 0, 0.5)",
       }}
     >
+      <div
+        style={{
+          padding: "10px",
+          borderBottom: "1px solid rgba(255,255,255,0.1)",
+        }}
+      >
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <h3 style={{ margin: 0 }}>Чат-бот</h3>
+          <button
+            onClick={onClose}
+            style={{
+              background: "transparent",
+              border: "none",
+              color: "#fff",
+              fontSize: "18px",
+              cursor: "pointer",
+            }}
+          >
+            ✕
+          </button>
+        </div>
+        {renderBotStatus()}
+      </div>
+
       <div
         style={{
           flexGrow: 1,
@@ -116,13 +169,15 @@ const ChatPreview = ({ onClose }) => {
                     ? "#000"
                     : "#fff",
                 whiteSpace: "pre-wrap",
+                maxWidth: "80%",
+                wordWrap: "break-word",
               }}
             >
               {msg.text}
             </span>
           </div>
         ))}
-        {renderConnectionStatusMessage()} { }
+        {renderConnectionStatusMessage()}
       </div>
 
       <div
@@ -142,7 +197,7 @@ const ChatPreview = ({ onClose }) => {
               handleSendMessage();
             }
           }}
-          placeholder="Напиши сообщение..."
+          placeholder="Напиши сообщение или команду (/help)..."
           style={{
             flexGrow: 1,
             padding: "8px",
@@ -167,22 +222,6 @@ const ChatPreview = ({ onClose }) => {
           Отправить
         </button>
       </div>
-
-      <button
-        onClick={onClose}
-        style={{
-          position: "absolute",
-          top: "10px",
-          right: "10px",
-          background: "transparent",
-          border: "none",
-          color: "#fff",
-          fontSize: "18px",
-          cursor: "pointer",
-        }}
-      >
-        ✕
-      </button>
     </div>
   );
 };
