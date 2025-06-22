@@ -1,11 +1,13 @@
 import * as go from "gojs";
 import createPort from "./createPort";
+import { nodeContextMenu } from "./diagram";
 
 const $ = go.GraphObject.make;
 
 const messageBlock = $(
   go.Node,
   "Auto",
+  { contextMenu: nodeContextMenu },
   // Фон и обводка
   $(go.Shape, "RoundedRectangle", {
     fill: "#1a237e", // Темно-синий фон
@@ -30,7 +32,9 @@ const messageBlock = $(
         stroke: "#fff", // Белый текст
       }),
       // Поле для редактирования сообщения
-      $(go.TextBlock, {
+      $(
+        go.TextBlock,
+        {
           column: 1,
           row: 1,
           editable: true,
@@ -49,7 +53,7 @@ const messageBlock = $(
       // Выходной порт
       new go.Panel("Horizontal", { column: 2, row: 1 }).add(
         createPort("OUT", go.Spot.Right, false, "#3f51b5")
-      ),
+      )
     )
 );
 

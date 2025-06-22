@@ -52,7 +52,10 @@ export default class chatLogic {
 
   handleOptionsResponse(option, conditions = {}) {
     this.renderer.renderMessage(option, "user");
-    this.userResponses.push({ type: "options", userResponse: { value: option } });
+    this.userResponses.push({
+      type: "options",
+      userResponse: { value: option },
+    });
     this.renderer.clearOptions();
 
     if (conditions[option]) {
@@ -66,7 +69,10 @@ export default class chatLogic {
   handleUserInput(userInput) {
     if (this.isWaitingForInput && userInput.trim()) {
       this.renderer.renderMessage(userInput, "user");
-      this.userResponses.push({ type: "input", userResponse: { value: userInput } });
+      this.userResponses.push({
+        type: "input",
+        userResponse: { value: userInput },
+      });
 
       this.isWaitingForInput = false;
       this.currentBlockIndex++;

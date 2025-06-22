@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import "./style.css";
 import { useNavigate } from "react-router-dom";
 import projectSharingService from "../../services/ProjectSharingService";
-import ProjectSharingUI from "../../components/ProjectSharingUI";
 
 const ProjectsPage = () => {
   const navigate = useNavigate();
@@ -16,8 +15,7 @@ const ProjectsPage = () => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newProjectName, setNewProjectName] = useState("");
   const [creatingProject, setCreatingProject] = useState(false);
-  const [showSharingModal, setShowSharingModal] = useState(false);
-  const [selectedProject, setSelectedProject] = useState(null);
+  const [deletingProject, setDeletingProject] = useState(null);
 
   // Загрузка данных
   useEffect(() => {
@@ -67,27 +65,53 @@ const ProjectsPage = () => {
   }, [navigate]);
 
   const handleProjectClick = (project) => {
-    // Use the collaborative route with shareToken if available, otherwise use projectId
-    const shareToken = project.shareToken || project.projectId;
-    navigate(`/collaborative/${shareToken}`, {
-      state: {
-        projectId: project.projectId,
-        projectName: project.name,
-        isShared: project.permission !== undefined,
-        shareToken: shareToken,
-      },
-    });
+    if (project.shareToken) {
+      // Only collaborative projects can be opened in collaborative editor
+      navigate(`/collaborative/${project.shareToken}`, {
+        state: {
+          projectId: project.projectId || project.id,
+          projectName: project.name,
+          isShared: project.permission !== undefined,
+          shareToken: project.shareToken,
+        },
+      });
+    } else {
+      alert(
+        "This is not a collaborative project. Please use the regular editor."
+      );
+      // Optionally: navigate(`/project/${project.projectId || project.id}`);
+    }
   };
 
-  const handleShareProject = (e, project) => {
+  const handleDeleteProject = async (e, project) => {
     e.stopPropagation();
-    setSelectedProject(project);
-    setShowSharingModal(true);
-  };
 
-  const handleCloseSharing = () => {
-    setShowSharingModal(false);
-    setSelectedProject(null);
+    if (
+      !window.confirm(
+        `Вы уверены, что хотите удалить проект "${project.name}"? Это действие нельзя отменить.`
+      )
+    ) {
+      return;
+    }
+
+    const projectIdToDelete = project.projectId || project.id;
+    setDeletingProject(projectIdToDelete);
+
+    try {
+      await projectSharingService.deleteProject(projectIdToDelete);
+
+      // Remove project from the list
+      setOwnedProjects((prev) =>
+        prev.filter((p) => (p.projectId || p.id) !== projectIdToDelete)
+      );
+
+      alert("Проект успешно удален!");
+    } catch (err) {
+      console.error("Ошибка удаления проекта:", err);
+      alert(`Ошибка удаления проекта: ${err.message}`);
+    } finally {
+      setDeletingProject(null);
+    }
   };
 
   const handleCreateProject = () => {
@@ -134,7 +158,8 @@ const ProjectsPage = () => {
       console.log("Collaborative проект создан:", data);
 
       // Show the share link to the user
-      const shareUrl = data.data.shareUrl;
+      const shareToken = data.data.shareToken;
+      const shareUrl = `${window.location.origin}/collaborative/${shareToken}`;
       alert(
         `Проект успешно создан!\n\nShare link: ${shareUrl}\n\nAnyone with this link can edit the project.`
       );
@@ -198,7 +223,7 @@ const ProjectsPage = () => {
   return (
     <div className="projects-container">
       <div className="user-info">
-        <h2>Привет, {user.name || "Пользователь"} 👋</h2>
+        <h2>Привет, {user.name || "Пользователь"}</h2>
         <p className="email">{user.email}</p>
       </div>
 
@@ -234,18 +259,25 @@ const ProjectsPage = () => {
                 </div>
                 <div className="project-actions">
                   <button
-                    className="share-button"
-                    onClick={(e) => handleShareProject(e, project)}
-                    title="Share project"
+                    className="delete-button"
+                    onClick={(e) => handleDeleteProject(e, project)}
+                    title="Delete project"
+                    disabled={
+                      deletingProject === (project.projectId || project.id)
+                    }
                   >
-                    <svg
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="currentColor"
-                    >
-                      <path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z" />
-                    </svg>
+                    {deletingProject === (project.projectId || project.id) ? (
+                      <span>Удаление...</span>
+                    ) : (
+                      <svg
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="currentColor"
+                      >
+                        <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" />
+                      </svg>
+                    )}
                   </button>
                 </div>
               </div>
@@ -327,15 +359,6 @@ const ProjectsPage = () => {
             </form>
           </div>
         </div>
-      )}
-
-      {/* Sharing Modal */}
-      {showSharingModal && selectedProject && (
-        <ProjectSharingUI
-          projectId={selectedProject.projectId}
-          projectName={selectedProject.name}
-          onClose={handleCloseSharing}
-        />
       )}
     </div>
   );

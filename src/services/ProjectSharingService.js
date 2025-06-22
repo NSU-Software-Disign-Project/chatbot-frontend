@@ -204,6 +204,29 @@ class ProjectSharingService {
       throw error;
     }
   }
+
+  // Delete project (only owner can delete)
+  async deleteProject(projectId) {
+    try {
+      const response = await fetch(
+        `${this.baseUrl}/api/collaborative/project/${projectId}`,
+        {
+          method: "DELETE",
+          headers: this.getHeaders(),
+        }
+      );
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Failed to delete project");
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error("Error deleting project:", error);
+      throw error;
+    }
+  }
 }
 
 // Create singleton instance

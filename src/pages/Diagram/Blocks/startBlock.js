@@ -1,11 +1,13 @@
 import * as go from "gojs";
 import createPort from "./createPort";
+import { nodeContextMenu } from "./diagram";
 
 const $ = go.GraphObject.make;
 
 const startBlock = $(
   go.Node,
   "Auto",
+  { contextMenu: nodeContextMenu },
   // Background and border
   $(go.Shape, "RoundedRectangle", {
     fill: "rgba(93, 0, 255, 0.25)", // Dark purple with transparency

@@ -1,11 +1,13 @@
 import * as go from "gojs";
 import createPort from "./createPort";
+import { nodeContextMenu } from "./diagram";
 
 const $ = go.GraphObject.make;
 
 const apiBlock = $(
   go.Node,
   "Auto",
+  { contextMenu: nodeContextMenu },
   // Фон и обводка
   $(go.Shape, "RoundedRectangle", {
     stroke: "#666", // Темная обводка
@@ -32,7 +34,9 @@ const apiBlock = $(
         stroke: "#fff", // Белый текст
       }),
       // Поле для URL
-      $(go.TextBlock, {
+      $(
+        go.TextBlock,
+        {
           column: 1,
           row: 1,
           editable: true,
@@ -45,7 +49,9 @@ const apiBlock = $(
         new go.Binding("text", "url").makeTwoWay()
       ),
       // Поле для имени переменной
-      $(go.TextBlock, {
+      $(
+        go.TextBlock,
+        {
           column: 1,
           row: 2,
           editable: true,
@@ -64,7 +70,7 @@ const apiBlock = $(
       // Выходной порт
       new go.Panel("Horizontal", { column: 2, row: 1 }).add(
         createPort("OUT", go.Spot.Right, false, "#bfcfe5")
-      ),
+      )
     )
 );
 

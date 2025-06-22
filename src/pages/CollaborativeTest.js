@@ -86,7 +86,7 @@ const CollaborativeTest = () => {
             color: "#7d3cff",
           }}
         >
-          🤝 Collaborative Editing Test
+          Collaborative Editing Test
         </h1>
 
         <div
@@ -181,7 +181,7 @@ const CollaborativeTest = () => {
             marginBottom: "30px",
           }}
         >
-          <h3>💬 Test Messages</h3>
+          <h3>Test Messages</h3>
           <div
             style={{
               display: "flex",

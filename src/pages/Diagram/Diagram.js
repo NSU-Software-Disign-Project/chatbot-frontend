@@ -7,20 +7,19 @@ import apiBlock from "./Blocks/apiBlock";
 import startBlock from "./Blocks/startBlock";
 import { createConditionalBlock } from "./Blocks/conditionalBlock";
 import { createOptionsBlock } from "./Blocks/optionsBlock";
-import createPort from "./Blocks/createPort";
 import { createDiagram } from "./Blocks/diagram";
-import {
-  saveDiagramServer,
-  loadDiagramServer,
-  saveDiagramLocally,
-  loadDiagramLocally,
-} from "./SaveLoad";
 import ChatPreview from "../Messenger/ChatPreview";
 import { useCollaborativeEditing } from "../../hooks/useCollaborativeEditing";
 import CollaborativeEditingUI from "../../components/CollaborativeEditingUI";
 import GoJSCollaborativeIntegration from "../../services/GoJSCollaborativeIntegration";
 import UserManager from "../../components/UserManager";
 import projectSharingService from "../../services/ProjectSharingService";
+import {
+  saveDiagramServer,
+  loadDiagramServer,
+  saveDiagramLocally,
+  loadDiagramLocally,
+} from "./SaveLoad";
 
 const Diagram = () => {
   const location = useLocation();
@@ -151,7 +150,15 @@ const Diagram = () => {
   };
 
   const handleBackToProjects = () => {
-    navigate("/me");
+    // Check if user is authenticated
+    const token = localStorage.getItem("token");
+    if (token) {
+      // If authenticated, go to projects page
+      navigate("/me");
+    } else {
+      // If not authenticated, go to homepage
+      navigate("/");
+    }
   };
 
   const canEdit = permission === "edit" || permission === "admin";
@@ -234,42 +241,11 @@ const Diagram = () => {
       );
 
       diagram.layout = new go.LayeredDigraphLayout({ columnSpacing: 10 });
+      // Start with a clean, empty diagram
       diagram.model = new go.GraphLinksModel({
         linkFromPortIdProperty: "fromPort",
         linkToPortIdProperty: "toPort",
-        nodeDataArray: [
-          {
-            key: 0,
-            category: "startBlock",
-            startText: "Start",
-          },
-          {
-            key: 1,
-            category: "messageBlock",
-            message: "Text message",
-          },
-          {
-            key: 2,
-            category: "conditionalBlock",
-            variableName: "variable name",
-            conditions: [{ "": "", portId: "OUT" }],
-          },
-          {
-            key: 3,
-            category: "optionsBlock",
-          },
-          {
-            key: 4,
-            category: "saveBlock",
-            variableName: "variable name",
-          },
-          {
-            key: 5,
-            category: "apiBlock",
-            variableName: "variable name",
-            url: "https://api.blockchain.org",
-          },
-        ],
+        nodeDataArray: [],
         linkDataArray: [],
       });
 
@@ -287,9 +263,20 @@ const Diagram = () => {
             }),
             nodeTemplateMap: diagram.nodeTemplateMap,
             contentAlignment: go.Spot.Center,
-            padding: new go.Margin(0, 0, 20, 0),
+            padding: new go.Margin(20, 20, 20, 20),
             allowZoom: false,
+            maxSelectionCount: 1,
+            "animationManager.isEnabled": false,
+            "toolManager.mouseWheelBehavior": go.ToolManager.WheelNone,
+            scrollMomentum: false,
+            scrollMode: go.Diagram.ScrollModeVertical,
+            "toolManager.draggingTool.dragsLink": false,
+            "toolManager.draggingTool.isGridSnapEnabled": false,
           });
+
+          // Set the palette to use the container size
+          palette.div.style.width = "100%";
+          palette.div.style.height = "100%";
 
           palette.model = new go.GraphLinksModel([
             {
@@ -311,6 +298,7 @@ const Diagram = () => {
             {
               key: 3,
               category: "optionsBlock",
+              options: [{ text: "Option 1", portId: "OUT0" }],
             },
             {
               key: 4,
@@ -337,6 +325,63 @@ const Diagram = () => {
       // Set up collaborative editing integration
       gojsIntegrationRef.current = new GoJSCollaborativeIntegration(diagram);
       gojsIntegrationRef.current.setupGoJSEventListeners();
+
+      // Force resize after a short delay to ensure proper sizing
+      setTimeout(() => {
+        if (diagram) diagram.layoutDiagram(true);
+        if (palette) palette.layoutDiagram(true);
+      }, 200);
+
+      // Add resize handler to maintain proper sizing
+      const handleResize = () => {
+        if (diagram) {
+          diagram.div.style.width = "100%";
+          diagram.div.style.height = "100%";
+          diagram.layoutDiagram(true);
+        }
+        if (palette) {
+          palette.div.style.width = "100%";
+          palette.div.style.height = "100%";
+          palette.layoutDiagram(true);
+        }
+      };
+
+      window.addEventListener("resize", handleResize);
+
+      // Clean up resize listener
+      return () => {
+        window.removeEventListener("resize", handleResize);
+        clearTimeout(timer);
+
+        // Stop any active text editing before cleanup
+        if (diagramRefObject.current && diagramRefObject.current.toolManager) {
+          const currentTool = diagramRefObject.current.toolManager.currentTool;
+          if (currentTool && currentTool.name === "TextEditing") {
+            currentTool.stopTool();
+          }
+        }
+
+        // Clean up collaborative editing integration
+        if (gojsIntegrationRef.current) {
+          gojsIntegrationRef.current.cleanup();
+          gojsIntegrationRef.current = null;
+        }
+
+        // Clean up diagram
+        if (diagramRefObject.current) {
+          try {
+            // Clear the model data instead of setting to null
+            if (diagramRefObject.current.model) {
+              diagramRefObject.current.model.nodeDataArray = [];
+              diagramRefObject.current.model.linkDataArray = [];
+            }
+          } catch (error) {
+            console.warn("Error clearing diagram model during cleanup:", error);
+          }
+          diagramRefObject.current.div = null;
+          diagramRefObject.current = null;
+        }
+      };
     }, 100); // 100ms delay to ensure DOM is ready
 
     return () => {
@@ -353,6 +398,44 @@ const Diagram = () => {
         diagramRefObject.current = null;
       }
     };
+  }, [projectName]);
+
+  // Force GoJS components to resize properly
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (diagramRefObject.current) {
+        diagramRefObject.current.div.style.width = "100%";
+        diagramRefObject.current.div.style.height = "100%";
+        diagramRefObject.current.layoutDiagram(true);
+      }
+
+      // Find the palette and resize it
+      if (paletteRef.current) {
+        const paletteDiv = paletteRef.current.querySelector("div");
+        if (paletteDiv) {
+          paletteDiv.style.width = "100%";
+          paletteDiv.style.height = "100%";
+        }
+      }
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Force resize on window resize
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    const handleResize = () => {
+      if (diagramRefObject.current) {
+        diagramRefObject.current.div.style.width = "100%";
+        diagramRefObject.current.div.style.height = "100%";
+        diagramRefObject.current.layoutDiagram(true);
+      }
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   // Автоматическое подключение к совместному редактированию при монтировании компонента и наличии projectId
@@ -413,6 +496,26 @@ const Diagram = () => {
 
   return (
     <>
+      <style>
+        {`
+          /* Reset all GoJS canvas sizing */
+          canvas {
+            width: 100% !important;
+            height: 100% !important;
+            max-width: none !important;
+            max-height: none !important;
+          }
+          
+          /* Force all GoJS containers to fill their parents */
+          [ref="paletteRef"] > div,
+          [ref="diagramRef"] > div {
+            width: 100% !important;
+            height: 100% !important;
+            max-width: none !important;
+            max-height: none !important;
+          }
+        `}
+      </style>
       <div
         style={{
           backgroundColor: "#1e1e1e",
@@ -492,8 +595,7 @@ const Diagram = () => {
 
         <button
           style={canEdit ? buttonStyle : disabledButtonStyle}
-          onClick={async () => {
-            await saveDiagramServer(diagramRefObject, projectName);
+          onClick={() => {
             setIsChatOpen(true);
           }}
           disabled={!canEdit}
@@ -525,27 +627,165 @@ const Diagram = () => {
         </button>
       </div>
 
-      <div style={{ display: "flex", height: "100vh", gap: "0px" }}>
+      {/* Main content area */}
+      <div
+        style={{
+          display: "flex",
+          height: "calc(100vh - 7vh)",
+          backgroundColor: "#1e1e1e",
+          padding: "10px",
+          gap: "10px",
+        }}
+      >
+        {/* Left Palette */}
         <div
           ref={paletteRef}
           style={{
             width: "240px",
-            background: "#111",
+            flexShrink: 0,
+            background: "#1e1e1e",
             borderRadius: "12px",
-            padding: "20px",
             boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
-            height: "100%",
+            border: "2px solid #333",
+            position: "relative",
           }}
-        ></div>
+        />
+
+        {/* Center Diagram */}
         <div
           ref={diagramRef}
           style={{
+            flex: 1,
             background: "#1e1e1e",
-            flexGrow: 1,
-            height: "100vh",
+            borderRadius: "12px",
+            boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
+            border: "2px solid #333",
+            position: "relative",
+          }}
+        />
+
+        {/* Right Block Menu */}
+        <div
+          style={{
+            width: "240px",
+            flexShrink: 0,
+            background: "#1e1e1e",
+            borderRadius: "12px",
+            boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
+            border: "2px solid #333",
+            display: "flex",
+            flexDirection: "column",
+            gap: "10px",
+            padding: "20px",
             overflow: "auto",
           }}
-        ></div>
+        >
+          <h3 style={{ color: "#fff", margin: "0 0 15px 0", fontSize: "16px" }}>
+            Block Menu
+          </h3>
+          <button
+            style={{
+              backgroundColor: "#7d3cff",
+              color: "#fff",
+              border: "none",
+              padding: "12px",
+              borderRadius: "8px",
+              cursor: "pointer",
+              fontWeight: "bold",
+              fontSize: "14px",
+              transition: "background-color 0.3s ease",
+            }}
+            onMouseEnter={(e) => (e.target.style.backgroundColor = "#8e4dff")}
+            onMouseLeave={(e) => (e.target.style.backgroundColor = "#7d3cff")}
+          >
+            Start Block
+          </button>
+          <button
+            style={{
+              backgroundColor: "#7d3cff",
+              color: "#fff",
+              border: "none",
+              padding: "12px",
+              borderRadius: "8px",
+              cursor: "pointer",
+              fontWeight: "bold",
+              fontSize: "14px",
+              transition: "background-color 0.3s ease",
+            }}
+            onMouseEnter={(e) => (e.target.style.backgroundColor = "#8e4dff")}
+            onMouseLeave={(e) => (e.target.style.backgroundColor = "#7d3cff")}
+          >
+            Message Block
+          </button>
+          <button
+            style={{
+              backgroundColor: "#7d3cff",
+              color: "#fff",
+              border: "none",
+              padding: "12px",
+              borderRadius: "8px",
+              cursor: "pointer",
+              fontWeight: "bold",
+              fontSize: "14px",
+              transition: "background-color 0.3s ease",
+            }}
+            onMouseEnter={(e) => (e.target.style.backgroundColor = "#8e4dff")}
+            onMouseLeave={(e) => (e.target.style.backgroundColor = "#7d3cff")}
+          >
+            Conditional Block
+          </button>
+          <button
+            style={{
+              backgroundColor: "#7d3cff",
+              color: "#fff",
+              border: "none",
+              padding: "12px",
+              borderRadius: "8px",
+              cursor: "pointer",
+              fontWeight: "bold",
+              fontSize: "14px",
+              transition: "background-color 0.3s ease",
+            }}
+            onMouseEnter={(e) => (e.target.style.backgroundColor = "#8e4dff")}
+            onMouseLeave={(e) => (e.target.style.backgroundColor = "#7d3cff")}
+          >
+            Options Block
+          </button>
+          <button
+            style={{
+              backgroundColor: "#7d3cff",
+              color: "#fff",
+              border: "none",
+              padding: "12px",
+              borderRadius: "8px",
+              cursor: "pointer",
+              fontWeight: "bold",
+              fontSize: "14px",
+              transition: "background-color 0.3s ease",
+            }}
+            onMouseEnter={(e) => (e.target.style.backgroundColor = "#8e4dff")}
+            onMouseLeave={(e) => (e.target.style.backgroundColor = "#7d3cff")}
+          >
+            API Block
+          </button>
+          <button
+            style={{
+              backgroundColor: "#7d3cff",
+              color: "#fff",
+              border: "none",
+              padding: "12px",
+              borderRadius: "8px",
+              cursor: "pointer",
+              fontWeight: "bold",
+              fontSize: "14px",
+              transition: "background-color 0.3s ease",
+            }}
+            onMouseEnter={(e) => (e.target.style.backgroundColor = "#8e4dff")}
+            onMouseLeave={(e) => (e.target.style.backgroundColor = "#7d3cff")}
+          >
+            Save Block
+          </button>
+        </div>
       </div>
 
       {/* User Manager */}

@@ -98,7 +98,7 @@ const CollaborativeEditingUI = ({
             fontWeight: "bold",
           }}
         >
-          🤝 Collaborative Editing
+          Collaborative Editing
         </h3>
         <div
           style={{

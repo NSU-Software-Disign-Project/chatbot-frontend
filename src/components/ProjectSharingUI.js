@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import projectSharingService from "../services/ProjectSharingService";
 import "./ProjectSharingUI.css";
 
@@ -14,14 +14,7 @@ const ProjectSharingUI = ({ projectId, projectName, onClose }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    if (projectId) {
-      loadSharedUsers();
-      generateShareableLink();
-    }
-  }, [projectId]);
-
-  const loadSharedUsers = async () => {
+  const loadSharedUsers = useCallback(async () => {
     try {
       setLoading(true);
       const project = await projectSharingService.getProjectByShareableId(
@@ -34,12 +27,19 @@ const ProjectSharingUI = ({ projectId, projectName, onClose }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [projectId]);
 
-  const generateShareableLink = () => {
+  const generateShareableLink = useCallback(() => {
     const link = projectSharingService.generateShareableLink(projectId);
     setShareableLink(link);
-  };
+  }, [projectId]);
+
+  useEffect(() => {
+    if (projectId) {
+      loadSharedUsers();
+      generateShareableLink();
+    }
+  }, [projectId, loadSharedUsers, generateShareableLink]);
 
   const handleShareProject = async (e) => {
     e.preventDefault();

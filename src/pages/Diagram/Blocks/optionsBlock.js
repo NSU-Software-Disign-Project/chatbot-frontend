@@ -1,5 +1,6 @@
 import * as go from "gojs";
 import createPort from "./createPort";
+import { nodeContextMenu } from "./diagram";
 
 const $ = go.GraphObject.make;
 
@@ -7,60 +8,43 @@ export const createOptionsBlock = (diagram) => {
   return $(
     go.Node,
     "Auto",
-    $(
-      go.Panel,
-      "Auto",
-      $(
-        go.Shape,
-        "RoundedRectangle",
-        {
-          fill: "rgba(254, 242, 67, 0.25)", // Жёлтый фон с прозрачностью
-          stroke: "#ffcc00", // Ярко-желтая обводка
-          strokeWidth: 2,
-        }
-      ),
-      $(
-        go.Panel,
-        "Vertical",
-        { alignment: go.Spot.TopLeft, margin: 10 },
-        $(
-          go.TextBlock,
-          {
-            margin: new go.Margin(8, 0),
-            font: "bold 14pt sans-serif",
-            stroke: "#fff", // Белый текст
-            text: "Options Block",
-          }
+    { contextMenu: nodeContextMenu },
+    // Background and border
+    $(go.Shape, "RoundedRectangle", {
+      fill: "rgba(254, 242, 67, 0.25)", // Жёлтый фон с прозрачностью
+      stroke: "#ffcc00", // Ярко-желтая обводка
+      strokeWidth: 2,
+    }),
+    // Content panel using Table layout like other blocks
+    $(go.Panel, "Table")
+      .addColumnDefinition(0, { alignment: go.Spot.Left })
+      .addColumnDefinition(1, { alignment: go.Spot.Center })
+      .addColumnDefinition(2, { alignment: go.Spot.Right })
+      .add(
+        // Block title
+        new go.TextBlock({
+          column: 0,
+          row: 0,
+          columnSpan: 3,
+          alignment: go.Spot.Center,
+          text: "Options Block",
+          font: "bold 14pt sans-serif",
+          margin: new go.Margin(8, 16),
+          stroke: "#fff", // Белый текст
+        }),
+        // Input port on the left
+        new go.Panel("Horizontal", { column: 0, row: 1 }).add(
+          createPort("IN", go.Spot.Left, true, "#ffcc00")
         ),
-        $(
-          go.Panel,
-          "Table"
-        )
-          .addColumnDefinition(0, { alignment: go.Spot.Left })
-          .addColumnDefinition(1, { alignment: go.Spot.Center })
-          .addColumnDefinition(2, { alignment: go.Spot.Right })
-          .add(
-            new go.Panel("Horizontal", { column: 0, row: 0 }).add(
-              createPort("IN", go.Spot.Left, true, "#ffcc00")
-            ),
-            $(go.TextBlock, {
-              column: 1,
-              row: 0,
-              editable: false,
-              isMultiline: false,
-              alignment: go.Spot.Center,
-              font: "bold 10pt sans-serif",
-              margin: new go.Margin(4, 16),
-              stroke: "#fff", // Белый текст
-              text: "Conditional",
-            })
-          ),
+        // Options panel in the center
         $(
           go.Panel,
           "Vertical",
           {
+            column: 1,
+            row: 1,
             alignment: go.Spot.Center,
-            name: "CONDITIONS_PANEL",
+            name: "OPTIONS_PANEL",
             defaultAlignment: go.Spot.Left,
             stretch: go.GraphObject.Horizontal,
             margin: new go.Margin(10, 0),
@@ -82,16 +66,21 @@ export const createOptionsBlock = (diagram) => {
                 },
                 new go.Binding("text", "text").makeTwoWay()
               ),
+              // Output port on the right using createPort function
               $(
                 go.Shape,
                 "Circle",
                 {
                   width: 8,
                   height: 8,
-                  fill: "#ffcc00", // Цвет порта
+                  fill: "#ffcc00",
                   stroke: null,
+                  portId: "", // Will be bound
                   fromSpot: go.Spot.Right,
                   fromLinkable: true,
+                  toLinkable: false,
+                  toMaxLinks: 0,
+                  fromMaxLinks: 10,
                   cursor: "pointer",
                 },
                 new go.Binding("portId", "portId")
@@ -99,8 +88,7 @@ export const createOptionsBlock = (diagram) => {
             ),
           }
         )
-      )
-    ),
+      ),
     {
       contextMenu: $(
         go.Adornment,
@@ -116,8 +104,14 @@ export const createOptionsBlock = (diagram) => {
               model.startTransaction("Добавить опцию");
               const options = node.data.options || [];
               const newPortId = `OUT${options.length}`;
-              const newOption = { text: `Option ${options.length + 1}`, portId: newPortId };
-              model.setDataProperty(node.data, "options", [...options, newOption]);
+              const newOption = {
+                text: `Option ${options.length + 1}`,
+                portId: newPortId,
+              };
+              model.setDataProperty(node.data, "options", [
+                ...options,
+                newOption,
+              ]);
               model.commitTransaction("Добавить опцию");
             },
           }
@@ -139,7 +133,23 @@ export const createOptionsBlock = (diagram) => {
               model.commitTransaction("Убрать опцию");
             },
           }
-        )
+        ),
+        $("ContextMenuButton", $(go.TextBlock, "Удалить блок"), {
+          click: (e, obj) => {
+            const node = obj.part;
+            if (node !== null) {
+              const diagram = node.diagram;
+              if (diagram && diagram.commandHandler) {
+                // Clear current selection first
+                diagram.clearSelection();
+                // Select only this specific node
+                diagram.select(node);
+                // Use the command handler to delete (this will trigger collaborative editing)
+                diagram.commandHandler.deleteSelection();
+              }
+            }
+          },
+        })
       ),
     }
   );

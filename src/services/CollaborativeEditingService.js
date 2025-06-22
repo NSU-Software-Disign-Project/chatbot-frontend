@@ -5,170 +5,277 @@ class CollaborativeEditingService {
     this.socket = null;
     this.isConnected = false;
     this.connectionStatus = "disconnected";
-    this.activeUsers = new Map();
-    this.baseUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:8080";
+    this.activeUsers = [];
+    this.projectId = null;
+    this.userId = null;
+    this.shareToken = null;
+    this.displayName = null;
 
-    // Обратные вызовы
+    // Callbacks
     this.onEditOperationCallback = null;
     this.onUserJoinedCallback = null;
     this.onUserLeftCallback = null;
     this.onConnectionStatusCallback = null;
     this.onProjectDataCallback = null;
+
+    // Reconnection settings
+    this.reconnectAttempts = 0;
+    this.maxReconnectAttempts = 5;
+    this.reconnectDelay = 1000;
+    this.reconnectTimer = null;
   }
 
-  // Подключение к совместному редактированию с токеном доступа (стиль Google Docs)
-  async connectWithShareToken(shareToken, displayName = null) {
-    if (this.socket) {
-      this.socket.disconnect();
+  // Connect to collaborative editing with project ID and user ID
+  async connect(projectId, userId, options = {}) {
+    if (this.socket && this.isConnected) {
+      console.log("Already connected to collaborative editing");
+      return;
     }
 
-    // Генерация имени отображения, если не предоставлено
-    if (!displayName) {
-      displayName = `Аноним ${Math.floor(Math.random() * 1000)}`;
-    }
+    this.projectId = projectId;
+    this.userId = userId;
+    this.updateConnectionStatus("connecting");
 
-    return new Promise((resolve, reject) => {
-      try {
-        console.log(
-          "Подключение к совместному редактированию с токеном доступа..."
-        );
+    try {
+      const { io } = await import("socket.io-client");
 
-        this.socket = io(`${this.baseUrl}/collaborative`, {
+      this.socket = io(
+        `${options.serverUrl || "http://localhost:8080"}/project`,
+        {
           query: {
-            shareToken,
-            displayName,
+            projectId: this.projectId,
+            userId: this.userId,
           },
           transports: ["websocket", "polling"],
-          timeout: 20000,
-        });
+          timeout: 10000,
+          reconnection: true,
+          reconnectionAttempts: this.maxReconnectAttempts,
+          reconnectionDelay: this.reconnectDelay,
+        }
+      );
 
-        this.socket.on("connect", () => {
-          console.log("Подключено к совместному редактированию");
+      this.setupEventListeners();
+
+      return new Promise((resolve, reject) => {
+        const timeout = setTimeout(() => {
+          reject(new Error("Connection timeout"));
+        }, 10000);
+
+        this.socket.once("connect", () => {
+          clearTimeout(timeout);
           this.isConnected = true;
           this.updateConnectionStatus("connected");
+          this.reconnectAttempts = 0;
+          console.log(
+            `Connected to collaborative editing for project ${this.projectId}`
+          );
           resolve();
         });
 
-        this.socket.on("disconnect", () => {
-          console.log("Отключено от совместного редактирования");
-          this.isConnected = false;
-          this.updateConnectionStatus("disconnected");
-        });
-
-        this.socket.on("connect_error", (error) => {
-          console.error("Ошибка соединения:", error);
+        this.socket.once("connect_error", (error) => {
+          clearTimeout(timeout);
           this.updateConnectionStatus("error");
+          console.error("Connection error:", error);
           reject(error);
         });
+      });
+    } catch (error) {
+      this.updateConnectionStatus("error");
+      console.error("Failed to connect to collaborative editing:", error);
+      throw error;
+    }
+  }
 
-        this.socket.on("reconnect", () => {
-          console.log("Переподключено к совместному редактированию");
-          this.updateConnectionStatus("connected");
-        });
+  // Connect with share token (for anonymous users)
+  async connectWithShareToken(shareToken, displayName = null) {
+    if (this.socket && this.isConnected) {
+      console.log("Already connected to collaborative editing");
+      return;
+    }
 
-        this.socket.on("reconnect_failed", () => {
-          console.error("Не удалось переподключиться");
-          this.updateConnectionStatus("reconnect_failed");
-        });
+    this.shareToken = shareToken;
+    this.displayName =
+      displayName || `Anonymous ${Math.floor(Math.random() * 1000)}`;
+    this.updateConnectionStatus("connecting");
 
-        // Событие данных проекта (начальные данные при присоединении)
-        this.socket.on("projectData", (data) => {
-          console.log("Получены данные проекта:", data);
-          if (this.onProjectDataCallback) {
-            this.onProjectDataCallback(data);
-          }
-        });
-
-        // События управления пользователями
-        this.socket.on("userJoined", (data) => {
-          console.log(
-            `Пользователь присоединился: ${data.displayName || data.userId}`
-          );
-          this.activeUsers.set(data.socketId, {
-            userId: data.userId,
-            socketId: data.socketId,
-            displayName: data.displayName,
-            isAnonymous: data.isAnonymous,
-            timestamp: data.timestamp,
+    return new Promise((resolve, reject) => {
+      try {
+        import("socket.io-client").then(({ io }) => {
+          this.socket = io("http://localhost:8080/collaborative", {
+            query: {
+              shareToken: this.shareToken,
+              displayName: this.displayName,
+            },
+            transports: ["websocket", "polling"],
+            timeout: 10000,
+            reconnection: true,
+            reconnectionAttempts: this.maxReconnectAttempts,
+            reconnectionDelay: this.reconnectDelay,
           });
-          if (this.onUserJoinedCallback) {
-            this.onUserJoinedCallback(data);
-          }
-        });
 
-        this.socket.on("userLeft", (data) => {
-          console.log(
-            `Пользователь покинул: ${data.displayName || data.userId}`
-          );
-          this.activeUsers.delete(data.socketId);
-          if (this.onUserLeftCallback) {
-            this.onUserLeftCallback(data);
-          }
-        });
+          this.setupEventListeners();
 
-        this.socket.on("userDisconnected", (data) => {
-          console.log(
-            `Пользователь отключился: ${data.displayName || data.userId}`
-          );
-          this.activeUsers.delete(data.socketId);
-          if (this.onUserLeftCallback) {
-            this.onUserLeftCallback(data);
-          }
-        });
+          const timeout = setTimeout(() => {
+            reject(new Error("Connection timeout"));
+          }, 10000);
 
-        // События операций редактирования
-        this.socket.on("editOperation", (operation) => {
-          console.log(
-            `Получена операция редактирования от ${
-              operation.displayName || operation.userId
-            }:`,
-            operation
-          );
-          if (this.onEditOperationCallback) {
-            this.onEditOperationCallback(operation);
-          }
-        });
+          this.socket.once("connect", () => {
+            clearTimeout(timeout);
+            this.isConnected = true;
+            this.updateConnectionStatus("connected");
+            this.reconnectAttempts = 0;
+            console.log(
+              `Connected to collaborative editing with share token ${this.shareToken}`
+            );
+            resolve();
+          });
 
-        // События ошибок
-        this.socket.on("error", (error) => {
-          console.error("Ошибка совместного редактирования:", error);
-          this.updateConnectionStatus("error");
+          this.socket.once("connect_error", (error) => {
+            clearTimeout(timeout);
+            this.updateConnectionStatus("error");
+            console.error("Connection error:", error);
+            reject(error);
+          });
         });
       } catch (error) {
-        console.error(
-          "Не удалось подключиться к совместному редактированию:",
-          error
-        );
+        this.updateConnectionStatus("error");
+        console.error("Failed to connect to collaborative editing:", error);
         reject(error);
       }
     });
   }
 
-  // Устаревший метод подключения (для обратной совместимости)
-  async connect(projectId, userId, options = {}) {
-    console.warn(
-      "Используется устаревший метод подключения. Рекомендуется использовать connectWithShareToken."
-    );
-    return this.connectWithShareToken(projectId, `User-${userId}`);
+  // Set up event listeners
+  setupEventListeners() {
+    if (!this.socket) return;
+
+    // Connection events
+    this.socket.on("connect", () => {
+      console.log("Connected to collaborative editing server");
+      this.isConnected = true;
+      this.updateConnectionStatus("connected");
+    });
+
+    this.socket.on("disconnect", (reason) => {
+      console.log("Disconnected from collaborative editing server:", reason);
+      this.isConnected = false;
+      this.updateConnectionStatus("disconnected");
+
+      if (reason === "io server disconnect") {
+        // Server disconnected us, try to reconnect
+        this.socket.connect();
+      }
+    });
+
+    this.socket.on("reconnect", (attemptNumber) => {
+      console.log(`Reconnected after ${attemptNumber} attempts`);
+      this.isConnected = true;
+      this.updateConnectionStatus("connected");
+    });
+
+    this.socket.on("reconnect_attempt", (attemptNumber) => {
+      console.log(`Reconnection attempt ${attemptNumber}`);
+      this.updateConnectionStatus("reconnecting");
+    });
+
+    this.socket.on("reconnect_failed", () => {
+      console.error("Failed to reconnect after maximum attempts");
+      this.updateConnectionStatus("reconnect_failed");
+    });
+
+    // User events
+    this.socket.on("userJoined", (data) => {
+      console.log(`User joined: ${data.userId || data.displayName}`);
+      this.updateActiveUsers();
+      if (this.onUserJoinedCallback) {
+        this.onUserJoinedCallback(data);
+      }
+    });
+
+    this.socket.on("userLeft", (data) => {
+      console.log(`User left: ${data.userId || data.displayName}`);
+      this.updateActiveUsers();
+      if (this.onUserLeftCallback) {
+        this.onUserLeftCallback(data);
+      }
+    });
+
+    this.socket.on("userDisconnected", (data) => {
+      console.log(`User disconnected: ${data.userId || data.displayName}`);
+      this.updateActiveUsers();
+      if (this.onUserLeftCallback) {
+        this.onUserLeftCallback(data);
+      }
+    });
+
+    // Edit operation events
+    this.socket.on("editOperation", (operation) => {
+      console.log(
+        `Received edit operation from ${
+          operation.displayName || operation.userId
+        }:`,
+        operation
+      );
+      if (this.onEditOperationCallback) {
+        this.onEditOperationCallback(operation);
+      }
+    });
+
+    // Project data events
+    this.socket.on("projectData", (data) => {
+      console.log("Received project data:", data);
+      if (this.onProjectDataCallback) {
+        this.onProjectDataCallback(data);
+      }
+    });
+
+    // Error events
+    this.socket.on("error", (error) => {
+      console.error("Collaborative editing error:", error);
+      this.updateConnectionStatus("error");
+    });
   }
 
-  // Отключение от совместного редактирования
-  disconnect() {
-    if (this.socket) {
-      console.log("Отключение от совместного редактирования...");
-      this.socket.emit("leaveProject");
-      this.socket.disconnect();
-      this.socket = null;
-      this.isConnected = false;
-      this.activeUsers.clear();
-      this.updateConnectionStatus("disconnected");
+  // Update connection status and notify callback
+  updateConnectionStatus(status) {
+    this.connectionStatus = status;
+    if (this.onConnectionStatusCallback) {
+      this.onConnectionStatusCallback(status);
     }
   }
 
-  // Отправка операции редактирования другим пользователям
+  // Update active users list
+  updateActiveUsers() {
+    // This would typically be updated from server events
+    // For now, we'll keep it simple
+    this.activeUsers = this.activeUsers.filter(
+      (user) => user.socketId !== this.socket?.id
+    );
+  }
+
+  // Disconnect from collaborative editing
+  disconnect() {
+    if (this.socket) {
+      console.log("Disconnecting from collaborative editing");
+      this.socket.emit("leaveProject");
+      this.socket.disconnect();
+      this.socket = null;
+    }
+
+    this.isConnected = false;
+    this.updateConnectionStatus("disconnected");
+    this.activeUsers = [];
+
+    if (this.reconnectTimer) {
+      clearTimeout(this.reconnectTimer);
+      this.reconnectTimer = null;
+    }
+  }
+
+  // Send edit operation to other users
   sendEditOperation(type, data) {
     if (!this.socket || !this.isConnected) {
-      console.warn("Не подключено к совместному редактированию");
+      console.warn("Not connected to collaborative editing");
       return false;
     }
 
@@ -178,25 +285,16 @@ class CollaborativeEditingService {
       timestamp: new Date().toISOString(),
     };
 
-    console.log(`Отправка операции редактирования: ${type}`, data);
+    console.log(`📤 IMMEDIATE: Sending edit operation: ${type}`, data);
+
+    // Send immediately without any queuing or delays
     this.socket.emit("editOperation", operation);
+
+    console.log(`✅ IMMEDIATE: Edit operation sent successfully: ${type}`);
     return true;
   }
 
-  // Получение активных пользователей
-  getActiveUsers() {
-    return Array.from(this.activeUsers.values());
-  }
-
-  // Обновление статуса соединения и уведомление обратного вызова
-  updateConnectionStatus(status) {
-    this.connectionStatus = status;
-    if (this.onConnectionStatusCallback) {
-      this.onConnectionStatusCallback(status);
-    }
-  }
-
-  // Установка обратных вызовов
+  // Set up callbacks
   onEditOperation(callback) {
     this.onEditOperationCallback = callback;
   }
@@ -248,6 +346,19 @@ class CollaborativeEditingService {
 
   sendPortChange(nodeId, portId, value) {
     return this.sendEditOperation("portChange", { nodeId, portId, value });
+  }
+
+  // Get current state
+  getConnectionStatus() {
+    return this.connectionStatus;
+  }
+
+  getActiveUsers() {
+    return this.activeUsers;
+  }
+
+  isConnectedToServer() {
+    return this.isConnected;
   }
 }
 

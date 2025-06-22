@@ -2,7 +2,9 @@ import * as go from "gojs";
 
 const $ = go.GraphObject.make;
 const createPort = (portId, spot, isInput, color) => {
-  return $(go.Panel, "Horizontal",
+  return $(
+    go.Panel,
+    "Horizontal",
     $(go.Shape, {
       figure: "Circle",
       width: 8,
@@ -15,8 +17,8 @@ const createPort = (portId, spot, isInput, color) => {
       toMaxLinks: isInput ? 1 : 10,
       cursor: "pointer",
       fill: color,
-      stroke:null,
-    }),
+      stroke: null,
+    })
   );
 };
 export default createPort;

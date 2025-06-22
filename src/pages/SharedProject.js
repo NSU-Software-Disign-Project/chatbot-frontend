@@ -85,6 +85,18 @@ const SharedProject = () => {
     });
   };
 
+  const handleNavigateToDashboard = () => {
+    // Check if user is authenticated
+    const token = localStorage.getItem("token");
+    if (token) {
+      // If authenticated, go to projects page
+      navigate("/me");
+    } else {
+      // If not authenticated, go to homepage
+      navigate("/");
+    }
+  };
+
   const getPermissionLabel = (permission) => {
     switch (permission) {
       case "view":
@@ -130,7 +142,10 @@ const SharedProject = () => {
           <h2>Доступ запрещен</h2>
           <p>{error}</p>
           <div className="error-actions">
-            <button onClick={() => navigate("/")} className="btn-secondary">
+            <button
+              onClick={handleNavigateToDashboard}
+              className="btn-secondary"
+            >
               На главную
             </button>
           </div>
@@ -147,7 +162,10 @@ const SharedProject = () => {
           <h2>Проект не найден</h2>
           <p>Проект, который вы ищете, не существует или был удален.</p>
           <div className="error-actions">
-            <button onClick={() => navigate("/")} className="btn-secondary">
+            <button
+              onClick={handleNavigateToDashboard}
+              className="btn-secondary"
+            >
               На главную
             </button>
           </div>
@@ -213,7 +231,10 @@ const SharedProject = () => {
             <button onClick={handleOpenProject} className="btn-primary">
               {access?.permission === "view" ? "View Project" : "Open Project"}
             </button>
-            <button onClick={() => navigate("/")} className="btn-secondary">
+            <button
+              onClick={handleNavigateToDashboard}
+              className="btn-secondary"
+            >
               Go to Dashboard
             </button>
           </div>

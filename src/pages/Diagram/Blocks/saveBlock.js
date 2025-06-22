@@ -1,11 +1,13 @@
 import * as go from "gojs";
 import createPort from "./createPort";
+import { nodeContextMenu } from "./diagram";
 
 const $ = go.GraphObject.make;
 
 const saveBlock = $(
   go.Node,
   "Auto",
+  { contextMenu: nodeContextMenu },
   // Фон и обводка
   $(go.Shape, "RoundedRectangle", {
     fill: "rgba(38, 166, 91, 0.25)", // Темно-зелёный с прозрачностью
@@ -30,7 +32,9 @@ const saveBlock = $(
         stroke: "#fff", // Белый текст
       }),
       // Поле для переменной
-      $(go.TextBlock, {
+      $(
+        go.TextBlock,
+        {
           column: 1,
           row: 1,
           editable: true,

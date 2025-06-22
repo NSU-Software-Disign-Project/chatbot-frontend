@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from "react";
 
 const AnimatedLogo = () => {
   const [nodes, setNodes] = useState([]);
@@ -6,7 +6,14 @@ const AnimatedLogo = () => {
 
   useEffect(() => {
     const getRandomColor = () => {
-      const colors = ['#7c3aed', '#f59e0b', '#10b981', '#3b82f6', '#ec4899', '#fbbf24'];
+      const colors = [
+        "#7c3aed",
+        "#f59e0b",
+        "#10b981",
+        "#3b82f6",
+        "#ec4899",
+        "#fbbf24",
+      ];
       return colors[Math.floor(Math.random() * colors.length)];
     };
 
@@ -50,7 +57,8 @@ const AnimatedLogo = () => {
 
             // Площадь треугольника между точками — если 0 → они на одной прямой
             const area = Math.abs(
-              (p2.x - p1.x) * (newPos.y - p1.y) - (newPos.x - p1.x) * (p2.y - p1.y)
+              (p2.x - p1.x) * (newPos.y - p1.y) -
+                (newPos.x - p1.x) * (p2.y - p1.y)
             );
 
             if (area < 5) {
@@ -87,9 +95,6 @@ const AnimatedLogo = () => {
       const links = [];
       for (let i = 0; i < newNodes.length; i++) {
         for (let j = i + 1; j < newNodes.length; j++) {
-          const dx = newNodes[i].x - newNodes[j].x;
-          const dy = newNodes[i].y - newNodes[j].y;
-          const distance = Math.sqrt(dx * dx + dy * dy);
           if (links.at(i) === links.at(j)) {
             links.push({ source: i, target: j });
           }
@@ -102,17 +107,18 @@ const AnimatedLogo = () => {
     generateNodes();
   }, []);
 
-  const getRandomColor = () => {
-    const colors = ['#7c3aed', '#f59e0b', '#10b981', '#3b82f6', '#ec4899', '#fbbf24'];
-    return colors[Math.floor(Math.random() * colors.length)];
-  };
-
   if (!nodes.nodes) return null;
 
   const { nodes: nodeList, links } = nodes;
 
   return (
-    <svg ref={svgRef} width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+    <svg
+      ref={svgRef}
+      width="200"
+      height="200"
+      viewBox="0 0 200 200"
+      xmlns="http://www.w3.org/2000/svg"
+    >
       {/* Линии */}
       {links.map((link, idx) => {
         const source = nodeList[link.source];
@@ -142,8 +148,18 @@ const AnimatedLogo = () => {
       {nodeList.length > 0 && (
         <>
           <circle cx={nodeList[0].x} cy={nodeList[0].y} r="3" fill="#ffffff">
-            <animate attributeName="r" values="3;8;3" dur="1.5s" repeatCount="indefinite" />
-            <animate attributeName="opacity" values="1;0.3;1" dur="1.5s" repeatCount="indefinite" />
+            <animate
+              attributeName="r"
+              values="3;8;3"
+              dur="1.5s"
+              repeatCount="indefinite"
+            />
+            <animate
+              attributeName="opacity"
+              values="1;0.3;1"
+              dur="1.5s"
+              repeatCount="indefinite"
+            />
           </circle>
 
           <circle
@@ -152,7 +168,13 @@ const AnimatedLogo = () => {
             r="3"
             fill="#ffffff"
           >
-            <animate attributeName="r" values="2;6;2" dur="2s" repeatCount="indefinite" begin="0.5s" />
+            <animate
+              attributeName="r"
+              values="2;6;2"
+              dur="2s"
+              repeatCount="indefinite"
+              begin="0.5s"
+            />
             <animate
               attributeName="opacity"
               values="1;0.4;1"
