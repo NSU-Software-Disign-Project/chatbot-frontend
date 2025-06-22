@@ -1,0 +1,48 @@
+.sharing-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0,0,0,0.65);
+  z-index: 4000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.22s;
+}
+.sharing-modal-overlay-open {
+  opacity: 1;
+}
+
+.sharing-modal-window {
+  background: #23214a;
+  border-radius: 16px;
+  padding: 32px;
+  min-width: 420px;
+  max-width: 600px;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 8px 32px #0008;
+  position: relative;
+  width: 100%;
+  z-index: 4001;
+  opacity: 0;
+  transform: scale(0.96) translateY(40px);
+  transition: opacity 0.22s, transform 0.22s;
+}
+.sharing-modal-window-open {
+  opacity: 1;
+  transform: scale(1) translateY(0);
+}
+
+.sharing-modal-window input[type="email"],
+.sharing-modal-window select {
+  vertical-align: middle;
+  margin-bottom: 0;
+}
+.sharing-modal-window button {
+  vertical-align: middle;
+  margin-bottom: 0;
+} 

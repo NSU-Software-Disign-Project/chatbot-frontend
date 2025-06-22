@@ -13,7 +13,7 @@ function App() {
       <Header />
       <Routes>
           <Route index element={<Homepage />} />
-          <Route path="diagram" element={<Diagram />} />
+          <Route path="/diagram/:id" element={<Diagram />} />
           <Route path="/me" element={<UsersProject />} />
           <Route path="/login" element={<LoginForm />} />
           <Route path="/register" element={<RegisterForm />} />

@@ -68,10 +68,10 @@ class SocketService {
   }
 
   // Отправить сообщение "start" при открытии чата
-  startBot(projectName) {
+  startBot(projectId) {
     if (this.socket) {
-      this.socket.emit("start", projectName);
-      console.log(`Сообщение 'start' с projectName '${projectName}' отправлено на сервер`);
+      this.socket.emit("start", projectId);
+      console.log(`Сообщение 'start' с projectId '${projectId}' отправлено на сервер`);
     }
   }
 

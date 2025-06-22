@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import socketService from "./socketService";
 
-const ChatPreview = ({ onClose }) => {
+const ChatPreview = ({ onClose, projectId }) => {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [inputRequest, setInputRequest] = useState(null);
@@ -11,7 +11,9 @@ const ChatPreview = ({ onClose }) => {
   // Установить соединение при открытии чата
   useEffect(() => {
     socketService.connect(setConnectionStatus, setMessages);
-    socketService.startBot("unprocessed");
+    if (projectId) {
+      socketService.startBot(projectId);
+    }
     console.log("Bot started");
 
     // Обработчик входящих сообщений
@@ -32,7 +34,7 @@ const ChatPreview = ({ onClose }) => {
       socketService.disconnect();
       console.log("Bot stopped");
     };
-  }, []);
+  }, [projectId]);
 
   // Отправить сообщение
   const handleSendMessage = () => {
