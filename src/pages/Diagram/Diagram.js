@@ -8,8 +8,6 @@ import {createConditionalBlock} from "./Blocks/conditionalBlock";
 import {createOptionsBlock} from "./Blocks/optionsBlock";
 import createPort from "./Blocks/createPort";
 import {createDiagram} from "./Blocks/diagram";
-import loopStartBlock from "./Blocks/loopStartBlock";
-import loopEndBlock from "./Blocks/loopEndBlock";
 import {
   saveDiagramServer,
   loadDiagramServer,
@@ -81,8 +79,6 @@ const Diagram = () => {
       diagram.nodeTemplateMap.add("messageBlock", messageBlock);
       diagram.nodeTemplateMap.add("conditionalBlock", createConditionalBlock(diagram));
       diagram.nodeTemplateMap.add("optionsBlock", createOptionsBlock(diagram));
-      diagram.nodeTemplateMap.add("loopStartBlock", loopStartBlock);
-      diagram.nodeTemplateMap.add("loopEndBlock", loopEndBlock);
       diagram.nodeTemplate = $(
         go.Node,
         "Auto",
@@ -118,12 +114,81 @@ const Diagram = () => {
           corner: 5,
           curve: go.Link.JumpOver,
           toShortLength: 4,
+          routing: go.Link.AvoidsNodes,
+          fromEndSegmentLength: 30,
+          toEndSegmentLength: 30,
         },
         new go.Binding("points").makeTwoWay(),
-        $(go.Shape, { isPanelMain: true, stroke: "white", strokeWidth: 1 }),
-        $(go.Shape, { toArrow: "roundedTriangle", stroke: "white", fill: "white", scale: 0.8 }),
+        new go.Binding("curviness", "", function(data, link) {
+          if (!link || !link.diagram) return 0;
+          const model = link.diagram.model;
+          // Разносим только дубликаты между одной парой портов
+          const allLinks = model.linkDataArray.filter(l =>
+            l.from === data.from &&
+            l.to === data.to &&
+            l.fromPort === data.fromPort &&
+            l.toPort === data.toPort
+          );
+          if (allLinks.length > 1) {
+            const idx = allLinks.findIndex(l => l === data);
+            return (idx % 2 === 0 ? 1 : -1) * (10 + 15 * Math.floor(idx / 2));
+          }
+          return 0;
+        }),
+        $(go.Shape, {
+          isPanelMain: true,
+        },
+          new go.Binding("stroke", "", function(data, link) {
+            if (!link || !link.diagram) return "#ffb300";
+            const model = link.diagram.model;
+            const allLinks = model.linkDataArray.filter(l => l.from === data.from && l.to === data.to);
+            if (allLinks.length <= 1) return "#ffb300";
+            const idx = allLinks.findIndex(l => l === data);
+            const colors = ["#ffb300", "#ff7043", "#42a5f5", "#66bb6a", "#ab47bc", "#ffa726", "#26a69a", "#ec407a"];
+            return colors[idx % colors.length];
+          }),
+          new go.Binding("strokeWidth", "", function(data, link) {
+            return 2.5;
+          })
+        ),
+        $(go.Shape, {
+          toArrow: "roundedTriangle",
+        },
+          new go.Binding("stroke", "", function(data, link) {
+            if (!link || !link.diagram) return "#ffb300";
+            const model = link.diagram.model;
+            const allLinks = model.linkDataArray.filter(l => l.from === data.from && l.to === data.to);
+            if (allLinks.length <= 1) return "#ffb300";
+            const idx = allLinks.findIndex(l => l === data);
+            const colors = ["#ffb300", "#ff7043", "#42a5f5", "#66bb6a", "#ab47bc", "#ffa726", "#26a69a", "#ec407a"];
+            return colors[idx % colors.length];
+          }),
+          new go.Binding("fill", "", function(data, link) {
+            if (!link || !link.diagram) return "#ffb300";
+            const model = link.diagram.model;
+            const allLinks = model.linkDataArray.filter(l => l.from === data.from && l.to === data.to);
+            if (allLinks.length <= 1) return "#ffb300";
+            const idx = allLinks.findIndex(l => l === data);
+            const colors = ["#ffb300", "#ff7043", "#42a5f5", "#66bb6a", "#ab47bc", "#ffa726", "#26a69a", "#ec407a"];
+            return colors[idx % colors.length];
+          }),
+          new go.Binding("scale", "", function() { return 1.1; })
+        ),
       );
-      diagram.layout = new go.LayeredDigraphLayout({ columnSpacing: 10 });
+      // Безопасно формируем параметры layout
+      const layeredLayoutOptions = {
+        direction: 0,
+        layerSpacing: 60,
+        setsPortSpots: false,
+        columnSpacing: 20,
+      };
+      if (go.LayeredDigraphLayout.CycleRemoveDepthFirst !== undefined) {
+        layeredLayoutOptions.cycleRemoveOption = go.LayeredDigraphLayout.CycleRemoveDepthFirst;
+      }
+      if (go.LayeredDigraphLayout.LayerOptimalLinkLength !== undefined) {
+        layeredLayoutOptions.layeringOption = go.LayeredDigraphLayout.LayerOptimalLinkLength;
+      }
+      diagram.layout = $(go.LayeredDigraphLayout, layeredLayoutOptions);
       diagram.model = new go.GraphLinksModel({
         linkFromPortIdProperty: "fromPort",
         linkToPortIdProperty: "toPort",
@@ -147,8 +212,6 @@ const Diagram = () => {
         { key: 3, category: "optionsBlock" },
         { key: 4, category: "saveBlock", variableName: "variable name" },
         { key: 5, category: "apiBlock", variableName: "variable", url: "link" },
-        { key: 6, category: "loopStartBlock", loopVariable: "counter", loopOperator: "<", loopValue: "5", maxIterations: "10" },
-        { key: 7, category: "loopEndBlock" },
       ]);
       palette.layout.arrangementOrigin = new go.Point(0, 40);
       palette.scale = 0.85;

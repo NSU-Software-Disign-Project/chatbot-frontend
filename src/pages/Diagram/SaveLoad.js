@@ -87,12 +87,16 @@ function validateCondition(conditionText) {
     const value = parts[1].trim();
   
     // Определяем тип значения
-    if (value === "true" || value === "false") {
-      conditionValue = value === "true";
-    } else if (!isNaN(value)) {
-      conditionValue = parseFloat(value);
+    let cleanValue = value;
+    if (typeof cleanValue === 'string' && /^".*"$/.test(cleanValue)) {
+      cleanValue = cleanValue.slice(1, -1);
+    }
+    if (cleanValue === "true" || cleanValue === "false") {
+      conditionValue = cleanValue === "true";
+    } else if (!isNaN(cleanValue)) {
+      conditionValue = parseFloat(cleanValue);
     } else {
-      conditionValue = value;
+      conditionValue = cleanValue;
     }
   
     return [operator, conditionValue];

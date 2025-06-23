@@ -52,7 +52,6 @@ export const createOptionsBlock = (diagram) => {
               font: "bold 10pt sans-serif",
               margin: new go.Margin(4, 16),
               stroke: "#fff", // Белый текст
-              text: "Conditional",
             })
           ),
         $(
@@ -93,6 +92,7 @@ export const createOptionsBlock = (diagram) => {
                   fromSpot: go.Spot.Right,
                   fromLinkable: true,
                   cursor: "pointer",
+                  fromMaxLinks: 1, // Только одна исходящая связь
                 },
                 new go.Binding("portId", "portId")
               )

@@ -84,6 +84,7 @@ export const createConditionalBlock = (diagram) => {
                   fromSpot: go.Spot.Right,
                   fromLinkable: true,
                   cursor: "pointer",
+                  fromMaxLinks: 1,
                 },
                 new go.Binding("portId", "portId")
               )

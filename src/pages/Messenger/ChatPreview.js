@@ -7,6 +7,7 @@ const ChatPreview = ({ onClose, projectId }) => {
   const [inputRequest, setInputRequest] = useState(null);
   const [connectionStatus, setConnectionStatus] = useState("connecting");
   const [botStatus, setBotStatus] = useState("active");
+  const [errorPopup, setErrorPopup] = useState(null);
 
   // Установить соединение при открытии чата
   useEffect(() => {
@@ -28,6 +29,20 @@ const ChatPreview = ({ onClose, projectId }) => {
       setMessages((prevMessages) => [...prevMessages, serverMessage]);
       setInputRequest(prompt);
     });
+
+    // Обработчик ошибок (например, лимит итераций)
+    if (socketService.socket) {
+      socketService.socket.on("error", (error) => {
+        if (
+          typeof error === "string" &&
+          (error.includes("предел итераций") || error.includes("цикл"))
+        ) {
+          setErrorPopup(
+            "Достигнут предел итераций (возможен цикл в логике бота). Исполнение остановлено."
+          );
+        }
+      });
+    }
 
     // Очистить соединение при закрытии
     return () => {
@@ -116,6 +131,40 @@ const ChatPreview = ({ onClose, projectId }) => {
         boxShadow: "-2px 0 10px rgba(0, 0, 0, 0.5)",
       }}
     >
+      {/* Всплывающее окно ошибки цикла */}
+      {errorPopup && (
+        <div style={{
+          position: "absolute",
+          top: 60,
+          left: 20,
+          right: 20,
+          zIndex: 999,
+          background: "#ff4444",
+          color: "#fff",
+          padding: "16px 12px",
+          borderRadius: 8,
+          fontWeight: "bold",
+          boxShadow: "0 2px 12px rgba(0,0,0,0.25)",
+          textAlign: "center",
+        }}>
+          {errorPopup}
+          <button
+            style={{
+              marginLeft: 16,
+              background: "#fff",
+              color: "#ff4444",
+              border: "none",
+              borderRadius: 4,
+              padding: "4px 10px",
+              fontWeight: "bold",
+              cursor: "pointer",
+            }}
+            onClick={() => setErrorPopup(null)}
+          >
+            Закрыть
+          </button>
+        </div>
+      )}
       <div
         style={{
           padding: "10px",
