@@ -6,6 +6,7 @@ const $ = go.GraphObject.make;
 const apiBlock = $(
   go.Node,
   "Auto",
+  new go.Binding("location", "loc", go.Point.parse).makeTwoWay(go.Point.stringify),
   // Фон и обводка
   $(go.Shape, "RoundedRectangle", {
     stroke: "#666", // Темная обводка

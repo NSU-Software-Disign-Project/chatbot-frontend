@@ -6,6 +6,7 @@ const $ = go.GraphObject.make;
 const messageBlock = $(
   go.Node,
   "Auto",
+  new go.Binding("location", "loc", go.Point.parse).makeTwoWay(go.Point.stringify),
   // Фон и обводка
   $(go.Shape, "RoundedRectangle", {
     fill: "#1a237e", // Темно-синий фон

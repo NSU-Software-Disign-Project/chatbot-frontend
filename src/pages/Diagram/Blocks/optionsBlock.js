@@ -7,6 +7,7 @@ export const createOptionsBlock = (diagram) => {
   return $(
     go.Node,
     "Auto",
+    new go.Binding("location", "loc", go.Point.parse).makeTwoWay(go.Point.stringify),
     $(
       go.Panel,
       "Auto",

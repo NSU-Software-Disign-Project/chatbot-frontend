@@ -19,6 +19,7 @@ import ChatPreview from "../Messenger/ChatPreview";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Header from '../../Header';
+import { useGojsYjsPatchSync } from './useGojsYjsPatchSync';
 
 const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8080';
 
@@ -30,13 +31,21 @@ const Diagram = () => {
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [loading, setLoading] = useState(!!id);
   const [error, setError] = useState(null);
-  const [nodeDataArray, setNodeDataArray] = useState([]);
+  const [nodeDataArray, setNodeDataArray] = useState([{ key: 0, category: "startBlock" }]);
   const [linkDataArray, setLinkDataArray] = useState([]);
   const [projectName, setProjectName] = useState('');
   const [editName, setEditName] = useState(false);
   const [nameInput, setNameInput] = useState('');
   const [savingName, setSavingName] = useState(false);
   const [projectRole, setProjectRole] = useState(null);
+  const [realtime, setRealtime] = useState(false);
+
+  console.log('[Diagram render]', {
+    projectName,
+    editName,
+    error,
+    loading
+  });
 
   useEffect(() => {
     if (!id) return;
@@ -192,8 +201,22 @@ const Diagram = () => {
       diagram.model = new go.GraphLinksModel({
         linkFromPortIdProperty: "fromPort",
         linkToPortIdProperty: "toPort",
+        linkKeyProperty: "key",
         nodeDataArray: nodeDataArray,
         linkDataArray: linkDataArray,
+      });
+      // Гарантируем, что все новые связи получают уникальный key
+      diagram.addModelChangedListener((e) => {
+        if (
+          e.change === go.ChangedEvent.Insert &&
+          e.propertyName === "linkDataArray"
+        ) {
+          const link = e.newValue;
+          if (link && !link.key) {
+            const key = `${link.from}_${link.fromPort}_${link.to}_${link.toPort}_${Date.now()}_${Math.floor(Math.random()*10000)}`;
+            diagram.model.setDataProperty(link, "key", key);
+          }
+        }
       });
       const palette = $(go.Palette, paletteRef.current, {
         layout: $(go.GridLayout, {
@@ -226,6 +249,12 @@ const Diagram = () => {
     }
   }, [nodeDataArray, linkDataArray]);
 
+  useGojsYjsPatchSync({
+    enabled: realtime,
+    diagramRef: diagramRefObject,
+    projectId: id,
+  });
+
   const buttonStyle = {
     marginRight: '8px',
     backgroundColor: '#7d3cff',
@@ -240,15 +269,25 @@ const Diagram = () => {
     transition: 'background-color 0.3s ease',
     minWidth: '120px',
   };
+  const realtimeButtonStyle = {
+    ...buttonStyle,
+    backgroundColor: realtime ? '#2ecc40' : '#888',
+    color: '#fff',
+    pointerEvents: 'auto',
+    opacity: 1,
+  };
 
   const handleRename = async () => {
+    console.log('[handleRename] start', { nameInput, projectName, editName });
     if (!nameInput.trim() || nameInput.trim() === projectName) {
+      console.log('[handleRename] no change, just exit');
       setEditName(false);
       setNameInput(projectName);
       return;
     }
     setSavingName(true);
     try {
+      console.log('[handleRename] sending PATCH', nameInput.trim());
       const token = localStorage.getItem('token');
       const res = await fetch(`${backendUrl}/projects/${id}`, {
         method: 'PATCH',
@@ -264,12 +303,15 @@ const Diagram = () => {
       }
       setProjectName(nameInput.trim());
       toast.success('Название проекта обновлено!');
+      console.log('[handleRename] success', nameInput.trim());
     } catch (e) {
       toast.error(e.message || 'Ошибка при переименовании');
       setNameInput(projectName);
+      console.log('[handleRename] error', e);
     } finally {
       setEditName(false);
       setSavingName(false);
+      console.log('[handleRename] finally', { editName, savingName });
     }
   };
 
@@ -280,16 +322,16 @@ const Diagram = () => {
       return;
     }
     try {
-      await saveDiagramServer(diagramRefObject, id, toast);
-      toast.success('Диаграмма успешно сохранена на сервер!');
+      const result = await saveDiagramServer(diagramRefObject, id, toast, realtime);
+      if (result) toast.success('Диаграмма успешно сохранена на сервер!');
     } catch (e) {
       toast.error('Ошибка при сохранении диаграммы');
     }
   };
   const handleLoadServer = async () => {
     try {
-      await loadDiagramServer(diagramRefObject, id, toast);
-      toast.success('Диаграмма успешно загружена с сервера!');
+      const result = await loadDiagramServer(diagramRefObject, id, toast, realtime);
+      if (result) toast.success('Диаграмма успешно загружена с сервера!');
     } catch (e) {
       toast.error('Ошибка при загрузке диаграммы');
     }
@@ -311,7 +353,6 @@ const Diagram = () => {
     }
   };
 
-  if (loading) return <div>Загрузка диаграммы...</div>;
   if (error) return <div style={{color:'red'}}>Ошибка: {error}</div>;
 
   return (
@@ -340,7 +381,7 @@ const Diagram = () => {
         </div>
         <div style={{ flexShrink: 0, marginLeft: 80 }}>
           {editName ? (
-            <form onSubmit={e => { e.preventDefault(); handleRename(); }} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <input
                 value={nameInput}
                 onChange={e => setNameInput(e.target.value)}
@@ -350,6 +391,10 @@ const Diagram = () => {
                   if (e.key === 'Escape') {
                     setEditName(false);
                     setNameInput(projectName);
+                  }
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleRename();
                   }
                 }}
                 style={{
@@ -365,8 +410,7 @@ const Diagram = () => {
                 }}
                 maxLength={40}
               />
-              <button type="submit" disabled={savingName} style={{ display: 'none' }} />
-            </form>
+            </div>
           ) : (
             <span
               style={{ fontSize: 24, fontWeight: 700, color: '#fff', letterSpacing: 0.5, cursor: 'pointer' }}
@@ -398,7 +442,11 @@ const Diagram = () => {
               setIsChatOpen(true);
             }}
           >Запустить бота</button>
+          <button style={realtimeButtonStyle} onClick={() => setRealtime(r => !r)}>
+            {realtime ? 'Отключить совместное редактирование' : 'Включить совместное редактирование'}
+          </button>
         </div>
+        {loading && <div style={{ color: '#aaa', marginLeft: 20 }}>Загрузка...</div>}
       </div>
       <div style={{
         display: "flex",

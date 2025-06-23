@@ -186,7 +186,8 @@ function transformToGoJSFormat(raw) {
     })) : [];
 
     console.log("Link data array:", data.linkDataArray); // Debugging statement
-    const linkDataArray = data.linkDataArray ? data.linkDataArray.map((link) => ({
+    const linkDataArray = data.linkDataArray ? data.linkDataArray.map((link, idx) => ({
+        key: link.key || `${link.from}_${link.fromPort}_${link.to}_${link.toPort}_${idx}_${Date.now()}`,
         from: link.from,
         to: link.to,
         fromPort: link.fromPort || undefined,
@@ -197,6 +198,7 @@ function transformToGoJSFormat(raw) {
         class: "GraphLinksModel",
         linkFromPortIdProperty: "fromPort",
         linkToPortIdProperty: "toPort",
+        linkKeyProperty: "key",
         nodeDataArray,
         linkDataArray
     };
@@ -208,17 +210,22 @@ if (!process.env.REACT_APP_BACKEND_URL) {
 
 const backendAddr = process.env.REACT_APP_BACKEND_URL || "http://localhost:8080";
 
-async function saveDiagramServer(diagramRefObject, projectId, toastCb) {
+async function saveDiagramServer(diagramRefObject, projectId, toastCb, realtime) {
+    if (realtime) {
+        if (toastCb) toastCb.warning('Отключите совместное редактирование для сохранения диаграммы!');
+        return false;
+    }
+
     if (!projectId) {
         console.error("Project id is undefined");
         if (toastCb) toastCb.error("Project id is required to save the diagram.");
-        return;
+        return false;
     }
 
     const diagram = diagramRefObject.current;
     if (!diagram) {
       if (toastCb) toastCb.error("Диаграмма не инициализирована.");
-      return;
+      return false;
     }
   
     const json = diagram.model.toJson();
@@ -241,18 +248,24 @@ async function saveDiagramServer(diagramRefObject, projectId, toastCb) {
           throw new Error("Failed to save diagram to server");
         }
         // Успех — уведомление вызывается снаружи
+        return true;
     } catch (error) {
         console.error(error);
         if (toastCb) toastCb.error("Failed to save diagram");
-        throw error;
+        return false;
     }
 }
 
-function loadDiagramServer(diagramRefObject, projectId, toastCb) {
+function loadDiagramServer(diagramRefObject, projectId, toastCb, realtime) {
+    if (realtime) {
+        if (toastCb) toastCb.warning('Отключите совместное редактирование для загрузки диаграммы!');
+        return false;
+    }
+
     if (!projectId) {
         console.error("Project id is undefined");
         if (toastCb) toastCb.error("Project id is required to load the diagram.");
-        return;
+        return false;
     }
     const token = localStorage.getItem('token');
     return fetch(`${backendAddr}/projects/${projectId}/config`, {
@@ -268,16 +281,17 @@ function loadDiagramServer(diagramRefObject, projectId, toastCb) {
             const diagram = diagramRefObject.current;
             if (!diagram) {
                 if (toastCb) toastCb.error("Диаграмма не инициализирована.");
-                return;
+                return false;
             }
             // Преобразуем данные из формата бэкенда в формат GoJS
             const transformedData = transformToGoJSFormat({data});
             diagram.model = go.Model.fromJson(transformedData);
+            return true;
         })
         .catch((error) => {
             console.error("Ошибка при загрузке диаграммы:", error);
             if (toastCb) toastCb.error("Ошибка при загрузке диаграммы.");
-            throw error;
+            return false;
         });
 }
 
@@ -324,3 +338,4 @@ export {
     saveDiagramLocally,
     loadDiagramLocally
  };
+

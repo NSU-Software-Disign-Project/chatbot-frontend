@@ -6,6 +6,7 @@ const $ = go.GraphObject.make;
 const saveBlock = $(
   go.Node,
   "Auto",
+  new go.Binding("location", "loc", go.Point.parse).makeTwoWay(go.Point.stringify),
   // Фон и обводка
   $(go.Shape, "RoundedRectangle", {
     fill: "rgba(38, 166, 91, 0.25)", // Темно-зелёный с прозрачностью

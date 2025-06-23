@@ -8,15 +8,16 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Header from './Header';
 
 function App() {
+  console.log('[App render]', window.location.pathname);
   return (
-  <BrowserRouter>
+    <BrowserRouter>
       <Header />
       <Routes>
-          <Route index element={<Homepage />} />
-          <Route path="/diagram/:id" element={<Diagram />} />
-          <Route path="/me" element={<UsersProject />} />
-          <Route path="/login" element={<LoginForm />} />
-          <Route path="/register" element={<RegisterForm />} />
+        <Route index element={<Homepage />} />
+        <Route path="/diagram/:id" element={<Diagram />} />
+        <Route path="/me" element={<UsersProject />} />
+        <Route path="/login" element={<LoginForm />} />
+        <Route path="/register" element={<RegisterForm />} />
       </Routes>
     </BrowserRouter>
   );

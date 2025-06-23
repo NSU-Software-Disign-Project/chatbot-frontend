@@ -16,7 +16,9 @@
     "react-toastify": "^11.0.5",
     "react-transition-group": "^4.4.5",
     "socket.io-client": "^4.8.1",
-    "web-vitals": "^2.1.4"
+    "web-vitals": "^2.1.4",
+    "y-websocket": "^3.0.0",
+    "yjs": "^13.6.27"
   },
   "scripts": {
     "start": "react-scripts start",
