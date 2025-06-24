@@ -12,12 +12,32 @@ function LoginForm() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      navigate('/me');
-    }
-  }, [navigate]);
+    const checkAuth = async () => {
+      const token = localStorage.getItem('token');
+      if (token) {
+        try {
+          const userResponse = await fetch(`${backendUrl}/user/me`, {
+            method: 'GET',
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
 
+          if (!userResponse.ok) {
+            localStorage.removeItem('token');
+            navigate('/login'); // Перенаправляем, если токен невалиден
+          }
+        } catch (err) {
+          console.error(err);
+          navigate('/login');
+        }
+      } else {
+        navigate('/login');
+      }
+    };
+
+    checkAuth();
+  }, [navigate]);
   const handleLogin = async (e) => {
     e.preventDefault();
     setError('');
