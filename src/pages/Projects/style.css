@@ -31,7 +31,7 @@
 
 .create-button {
     padding: 10px 16px;
-    background-color: #4f46e5;
+    background-color: #7d3cff;
     color: white;
     border: none;
     border-radius: 8px;
@@ -40,7 +40,7 @@
 }
 
 .create-button:hover {
-    background-color: #3730a3;
+    background-color: #7d3cff;
 }
 
 .projects-list {
@@ -146,7 +146,7 @@
     width: 100px;
 }
 .logout-button:hover {
-    background: #4f46e5;
+    background: #7d3cff;
 }
 @media (max-width: 600px) {
     .user-info-row {
@@ -179,7 +179,7 @@
 }
 .create-project-save {
   padding: 8px 16px;
-  background: #4f46e5;
+  background: #7d3cff;
   color: #fff;
   border: none;
   border-radius: 6px;
@@ -201,7 +201,7 @@
   transition: background 0.2s;
 }
 .create-project-cancel:hover {
-  background: #3730a3;
+  background:#7d3cff;
 }
 .project-role {
   display: inline-block;
