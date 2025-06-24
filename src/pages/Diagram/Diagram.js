@@ -20,6 +20,7 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Header from '../../Header';
 import { useGojsYjsPatchSync } from './useGojsYjsPatchSync';
+import styles from './Diagram.module.css';
 
 const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8080';
 
@@ -218,30 +219,34 @@ const Diagram = () => {
           }
         }
       });
-      const palette = $(go.Palette, paletteRef.current, {
-        layout: $(go.GridLayout, {
-          wrappingColumn: 1,
-          spacing: new go.Size(0, 20),
-        }),
-        nodeTemplateMap: diagram.nodeTemplateMap,
-        contentAlignment: go.Spot.Center,
-        padding: new go.Margin(0, 0, 20, 0),
-        allowZoom: false,
-      });
-      palette.model = new go.GraphLinksModel([
-        { key: 0, category: "startBlock" },
-        { key: 1, category: "messageBlock", message: "Text message" },
-        { key: 2, category: "conditionalBlock", variableName: "variable name", conditions: [{ "": "", "portId": "OUT" }] },
-        { key: 3, category: "optionsBlock" },
-        { key: 4, category: "saveBlock", variableName: "variable name" },
-        { key: 5, category: "apiBlock", variableName: "variable", url: "link" },
-      ]);
-      palette.layout.arrangementOrigin = new go.Point(0, 40);
-      palette.scale = 0.85;
+      // --- Palette ---
+      let palette = null;
+      if (projectRole !== 'viewer' && paletteRef.current) {
+        palette = $(go.Palette, paletteRef.current, {
+          layout: $(go.GridLayout, {
+            wrappingColumn: 1,
+            spacing: new go.Size(0, 20),
+          }),
+          nodeTemplateMap: diagram.nodeTemplateMap,
+          contentAlignment: go.Spot.Center,
+          padding: new go.Margin(0, 0, 20, 0),
+          allowZoom: false,
+        });
+        palette.model = new go.GraphLinksModel([
+          { key: 0, category: "startBlock" },
+          { key: 1, category: "messageBlock", message: "Text message" },
+          { key: 2, category: "conditionalBlock", variableName: "variable name", conditions: [{ "": "", "portId": "OUT" }] },
+          { key: 3, category: "optionsBlock" },
+          { key: 4, category: "saveBlock", variableName: "variable name" },
+          { key: 5, category: "apiBlock", variableName: "variable", url: "link" },
+        ]);
+        palette.layout.arrangementOrigin = new go.Point(0, 40);
+        palette.scale = 0.85;
+      }
       diagramRefObject.current = diagram;
       return () => {
         diagram.div = null;
-        palette.div = null;
+        if (palette) palette.div = null;
       };
     } catch (e) {
       setError(e.message || 'Ошибка инициализации диаграммы');
@@ -254,28 +259,6 @@ const Diagram = () => {
     diagramRef: diagramRefObject,
     projectId: id,
   });
-
-  const buttonStyle = {
-    marginRight: '8px',
-    backgroundColor: '#7d3cff',
-    color: '#fff',
-    border: 'none',
-    padding: '6px 14px',
-    borderRadius: '5px',
-    cursor: 'pointer',
-    fontWeight: 'bold',
-    fontSize: '14px',
-    boxShadow: '0 2px 10px rgba(0, 0, 0, 0.15)',
-    transition: 'background-color 0.3s ease',
-    minWidth: '120px',
-  };
-  const realtimeButtonStyle = {
-    ...buttonStyle,
-    backgroundColor: realtime ? '#2ecc40' : '#888',
-    color: '#fff',
-    pointerEvents: 'auto',
-    opacity: 1,
-  };
 
   const handleRename = async () => {
     console.log('[handleRename] start', { nameInput, projectName, editName });
@@ -367,15 +350,7 @@ const Diagram = () => {
         closeButton={false}
         limit={2}
       />
-      <div style={{
-        background: '#181828',
-        padding: '28px 32px 18px 32px',
-        display: 'flex',
-        alignItems: 'center',
-        gap: '18px',
-        borderBottom: '1px solid #333',
-        minHeight: 80,
-      }}>
+      <div className={styles.topBar}>
         <div style={{ marginRight: 18, flexShrink: 0 }}>
           <Header />
         </div>
@@ -419,22 +394,22 @@ const Diagram = () => {
             >{projectName}</span>
           )}
         </div>
-        <div style={{ display: 'flex', gap: 8, marginLeft: 'auto' }}>
+        <div className={styles.buttonGroup}>
           {projectRole !== 'viewer' && (
-            <button style={buttonStyle} onClick={handleSaveLocal}>Сохранить локально</button>
+            <button className={styles.button} onClick={handleSaveLocal}>Сохранить локально</button>
           )}
           {projectRole !== 'viewer' && (
-            <button style={buttonStyle} onClick={handleLoadLocal}>Загрузить локально</button>
+            <button className={styles.button} onClick={handleLoadLocal}>Загрузить локально</button>
           )}
           {projectRole !== 'viewer' && (
             <button
-              style={buttonStyle}
+              className={styles.button}
               onClick={handleSaveServer}
             >Сохранить на сервер</button>
           )}
-          <button style={buttonStyle} onClick={handleLoadServer}>Загрузить с сервера</button>
+          <button className={styles.button} onClick={handleLoadServer}>Загрузить с сервера</button>
           <button
-            style={buttonStyle}
+            className={styles.button}
             onClick={async () => {
               if (projectRole !== 'viewer') {
                 await handleSaveServer();
@@ -442,42 +417,23 @@ const Diagram = () => {
               setIsChatOpen(true);
             }}
           >Запустить бота</button>
-          <button style={realtimeButtonStyle} onClick={() => setRealtime(r => !r)}>
+          <button className={realtime ? styles.realtimeButtonActive : styles.realtimeButton} onClick={() => setRealtime(r => !r)}>
             {realtime ? 'Отключить совместное редактирование' : 'Включить совместное редактирование'}
           </button>
         </div>
         {loading && <div style={{ color: '#aaa', marginLeft: 20 }}>Загрузка...</div>}
       </div>
-      <div style={{
-        display: "flex",
-        height: "100vh",
-        gap: "0px",
-      }}>
-        <div
-          ref={paletteRef}
-          style={{
-            width: '240px',
-            background: '#111',
-            borderRadius: '12px',
-            padding: '20px',
-            boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
-            height: 'calc(100vh - 80px - 28px - 18px)',
-            overflowY: 'auto',
-            overflowX: 'hidden',
-            scrollbarWidth: 'none',
-            msOverflowStyle: 'none',
-          }}
-          className="palette-no-scroll"
-        >
-        </div>
+      <div className={styles.layout}>
+        {projectRole !== 'viewer' && (
+          <div
+            ref={paletteRef}
+            className={styles.palette}
+          >
+          </div>
+        )}
         <div
           ref={diagramRef}
-          style={{
-            background: "#1e1e1e",
-            flexGrow: 1,
-            height: "100vh",
-            overflow: "auto",
-          }}
+          className={styles.diagramArea}
         ></div>
       </div>
       {isChatOpen && (

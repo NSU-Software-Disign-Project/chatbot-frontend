@@ -13,204 +13,84 @@ import * as go from 'gojs';
 export function useGojsYjsPatchSync({ enabled, diagramRef, projectId }) {
   const ydocRef = useRef(null);
   const providerRef = useRef(null);
-  const updatingFromYjs = useRef(false);
-  const updatingFromGojs = useRef(false);
 
   useEffect(() => {
     if (!enabled || !diagramRef.current || !projectId) return;
 
-    // 1. Создаём Yjs doc и провайдер
     const ydoc = new Y.Doc();
     const provider = new WebsocketProvider(
-      window.location.hostname === 'localhost'
-        ? 'ws://localhost:1234'
-        : 'ws://yjs-websocket:1234',
+      process.env.REACT_APP_YJS_WS_URL || (
+        window.location.hostname === 'localhost'
+          ? 'ws://localhost:1234'
+          : 'ws://yjs-websocket:1234'
+      ),
       projectId,
       ydoc
     );
     ydocRef.current = ydoc;
     providerRef.current = provider;
 
-    // 2. Y.Map для блоков и связей
-    const yNodes = ydoc.getMap('nodes');
-    const yLinks = ydoc.getMap('links');
+    const yText = ydoc.getText('diagram');
 
-    // --- Yjs -> GoJS ---
-    const applyYjsToGojs = () => {
-      if (!diagramRef.current) return;
-      updatingFromYjs.current = true;
-      const model = diagramRef.current.model;
-      const yNodesArr = Array.from(yNodes.values());
-      const yLinksArr = Array.from(yLinks.values());
+    let suppressGojs = false;
+    let suppressYjs = false;
 
-      // --- Синхронизация узлов ---
-      // 1. Удалить отсутствующие
-      model.nodeDataArray.slice().forEach(node => {
-        if (!yNodes.has(String(node.key))) {
-          model.removeNodeData(node);
+    // Yjs -> GoJS
+    const updateGojsFromYjs = () => {
+      if (suppressGojs) return;
+      const json = yText.toString();
+      if (json && diagramRef.current) {
+        suppressYjs = true;
+        let newModel = null;
+        try {
+          newModel = go.Model.fromJson(json);
+        } catch (e) {
+          suppressYjs = false;
+          return;
         }
-      });
-      // 2. Добавить новые и обновить существующие
-      yNodesArr.forEach(yNode => {
-        const localNode = model.findNodeDataForKey(yNode.key);
-        if (!localNode) {
-          model.addNodeData(yNode);
-        } else {
-          // Обновить только изменённые поля (глубокое сравнение для вложенных структур)
-          Object.keys(yNode).forEach(field => {
-            const yVal = yNode[field];
-            const lVal = localNode[field];
-            const isObject = val => val && typeof val === 'object';
-            let changed = false;
-            if (isObject(yVal) && isObject(lVal)) {
-              changed = JSON.stringify(yVal) !== JSON.stringify(lVal);
-            } else {
-              changed = yVal !== lVal;
-            }
-            if (changed) {
-              model.setDataProperty(localNode, field, yVal);
-            }
-          });
-          // Удалить поля, которых больше нет в yNode
-          Object.keys(localNode).forEach(field => {
-            if (!(field in yNode) && field !== 'key') {
-              model.setDataProperty(localNode, field, undefined);
-            }
-          });
+        if (!newModel) {
+          suppressYjs = false;
+          return;
         }
-      });
-
-      // --- Синхронизация связей ---
-      model.linkDataArray.slice().forEach(link => {
-        if (!yLinks.has(String(link.key))) {
-          model.removeLinkData(link);
-        }
-      });
-      yLinksArr.forEach(yLink => {
-        const localLink = model.findLinkDataForKey(yLink.key);
-        if (!localLink) {
-          model.addLinkData(yLink);
-        } else {
-          Object.keys(yLink).forEach(field => {
-            const yVal = yLink[field];
-            const lVal = localLink[field];
-            const isObject = val => val && typeof val === 'object';
-            let changed = false;
-            if (isObject(yVal) && isObject(lVal)) {
-              changed = JSON.stringify(yVal) !== JSON.stringify(lVal);
-            } else {
-              changed = yVal !== lVal;
-            }
-            if (changed) {
-              model.setDataProperty(localLink, field, yVal);
-            }
-          });
-          Object.keys(localLink).forEach(field => {
-            if (!(field in yLink) && field !== 'key') {
-              model.setDataProperty(localLink, field, undefined);
-            }
-          });
-        }
-      });
-
-      updatingFromYjs.current = false;
+        // Пересоздаём модель для корректного обновления GoJS
+        const model = new go.GraphLinksModel(
+          newModel.nodeDataArray,
+          newModel.linkDataArray
+        );
+        if (newModel.linkFromPortIdProperty)
+          model.linkFromPortIdProperty = newModel.linkFromPortIdProperty;
+        if (newModel.linkToPortIdProperty)
+          model.linkToPortIdProperty = newModel.linkToPortIdProperty;
+        diagramRef.current.model = model;
+        suppressYjs = false;
+      }
     };
-    yNodes.observeDeep(applyYjsToGojs);
-    yLinks.observeDeep(applyYjsToGojs);
+    yText.observe(updateGojsFromYjs);
 
-    // --- GoJS -> Yjs ---
+    // GoJS -> Yjs
     const onModelChanged = (e) => {
-      if (updatingFromYjs.current) return;
-      if (!diagramRef.current) return;
-      // --- Добавление блока ---
-      if (e.change === go.ChangedEvent.Insert && e.propertyName === 'nodeDataArray') {
-        const node = e.newValue;
-        if (node && node.key != null) {
-          updatingFromGojs.current = true;
-          yNodes.set(String(node.key), node);
-          updatingFromGojs.current = false;
-        }
-      }
-      // --- Удаление блока ---
-      else if (e.change === go.ChangedEvent.Remove && e.propertyName === 'nodeDataArray') {
-        const node = e.oldValue;
-        if (node && node.key != null) {
-          updatingFromGojs.current = true;
-          yNodes.delete(String(node.key));
-          updatingFromGojs.current = false;
-        }
-      }
-      // --- Любые изменения свойств блока, включая вложенные массивы (options, conditions, itemArray) ---
-      else if (
-        e.change === go.ChangedEvent.Property &&
-        (
-          e.object instanceof go.Node ||
-          e.modelChange === 'nodeDataArray' ||
-          e.propertyName === 'itemArray' // для itemArray GoJS
-        )
-      ) {
-        const node = e.object;
-        // node.data гарантированно есть у go.Node, иначе fallback на node
-        const data = node && node.data ? node.data : node;
-        if (data && data.key != null) {
-          updatingFromGojs.current = true;
-          yNodes.set(String(data.key), data);
-          updatingFromGojs.current = false;
-        }
-      }
-      // --- Добавление связи ---
-      else if (e.change === go.ChangedEvent.Insert && e.propertyName === 'linkDataArray') {
-        const link = e.newValue;
-        if (link && link.key != null) {
-          updatingFromGojs.current = true;
-          yLinks.set(String(link.key), link);
-          updatingFromGojs.current = false;
-        }
-      }
-      // --- Удаление связи ---
-      else if (e.change === go.ChangedEvent.Remove && e.propertyName === 'linkDataArray') {
-        const link = e.oldValue;
-        if (link && link.key != null) {
-          updatingFromGojs.current = true;
-          yLinks.delete(String(link.key));
-          updatingFromGojs.current = false;
-        }
-      }
-      // --- Любые изменения свойств связи ---
-      else if (
-        e.change === go.ChangedEvent.Property &&
-        (e.object instanceof go.Link || e.modelChange === 'linkDataArray')
-      ) {
-        const link = e.object;
-        const data = link && link.data ? link.data : link;
-        if (data && data.key != null) {
-          updatingFromGojs.current = true;
-          yLinks.set(String(data.key), data);
-          updatingFromGojs.current = false;
+      if (suppressYjs) return;
+      if (e.isTransactionFinished && diagramRef.current) {
+        const json = diagramRef.current.model.toJson();
+        if (yText.toString() !== json) {
+          suppressGojs = true;
+          yText.delete(0, yText.length);
+          yText.insert(0, json);
+          suppressGojs = false;
         }
       }
     };
     diagramRef.current.addModelChangedListener(onModelChanged);
 
-    // --- Инициализация: если Yjs пустой — записать локальные данные ---
-    if (yNodes.size === 0 && diagramRef.current) {
-      diagramRef.current.model.nodeDataArray.forEach(node => {
-        if (node.key != null) yNodes.set(String(node.key), node);
-      });
+    // Инициализация: если Yjs пустой — записать текущее состояние диаграммы
+    if (yText.length === 0 && diagramRef.current) {
+      yText.insert(0, diagramRef.current.model.toJson());
     } else {
-      applyYjsToGojs();
-    }
-    if (yLinks.size === 0 && diagramRef.current) {
-      diagramRef.current.model.linkDataArray.forEach(link => {
-        if (link.key != null) yLinks.set(String(link.key), link);
-      });
-    } else {
-      applyYjsToGojs();
+      updateGojsFromYjs();
     }
 
     return () => {
-      yNodes.unobserveDeep(applyYjsToGojs);
-      yLinks.unobserveDeep(applyYjsToGojs);
+      yText.unobserve(updateGojsFromYjs);
       diagramRef.current.removeModelChangedListener(onModelChanged);
       provider.disconnect();
       ydoc.destroy();
