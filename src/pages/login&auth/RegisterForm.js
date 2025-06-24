@@ -13,11 +13,32 @@ function RegisterForm() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      navigate('/me');
-    }
+    const checkAuth = async () => {
+      const token = localStorage.getItem('token');
+      if (token) {
+        try {
+          const userResponse = await fetch(`${backendUrl}/user/me`, {
+            method: 'GET',
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+
+          if (!userResponse.ok) {
+            localStorage.removeItem('token');
+            navigate('/register'); // Перенаправляем, если токен невалиден
+          }
+        } catch (err) {
+          console.error(err);
+        }
+      } else {
+        navigate('/register');
+      }
+    };
+
+    checkAuth();
   }, [navigate]);
+
 
   const handleRegister = async (e) => {
     e.preventDefault();

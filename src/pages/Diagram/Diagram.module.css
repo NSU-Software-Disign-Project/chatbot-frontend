@@ -87,4 +87,12 @@
   flex-grow: 1;
   height: 100vh;
   overflow: auto;
-} 
+}
+
+@media (max-width: 1020px) {
+  .buttonGroup {
+    flex-wrap: wrap;
+    justify-content: center;
+
+  }
+}

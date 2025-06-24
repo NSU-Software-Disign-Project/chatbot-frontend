@@ -150,7 +150,7 @@ const ChatPreview = ({ onClose, projectId }) => {
           {errorPopup}
           <button
             style={{
-              marginLeft: 16,
+
               background: "#fff",
               color: "#ff4444",
               border: "none",
@@ -171,8 +171,7 @@ const ChatPreview = ({ onClose, projectId }) => {
           borderBottom: "1px solid rgba(255,255,255,0.1)",
         }}
       >
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <h3 style={{ margin: 0 }}>Чат-бот</h3>
+        <div style={{ display: "flex", alignItems: "center" }}>
           <button
             onClick={onClose}
             style={{
