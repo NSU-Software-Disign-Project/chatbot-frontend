@@ -90,9 +90,9 @@
 }
 
 @media (max-width: 1020px) {
-  .buttonGroup {
-    flex-wrap: wrap;
-    justify-content: center;
 
-  }
+    .buttonGroup {
+      flex-wrap: wrap;
+      justify-content: center;
+    }
 }
