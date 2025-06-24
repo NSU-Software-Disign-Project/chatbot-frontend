@@ -1,16 +1,20 @@
 import React, { useEffect, useState } from "react";
 import socketService from "./socketService";
 
-const ChatPreview = ({ onClose }) => {
+const ChatPreview = ({ onClose, projectId }) => {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [inputRequest, setInputRequest] = useState(null);
-  const [connectionStatus, setConnectionStatus] = useState("connecting"); // Статус соединения
+  const [connectionStatus, setConnectionStatus] = useState("connecting");
+  const [botStatus, setBotStatus] = useState("active");
+  const [errorPopup, setErrorPopup] = useState(null);
 
   // Установить соединение при открытии чата
   useEffect(() => {
     socketService.connect(setConnectionStatus, setMessages);
-    socketService.startBot("unprocessed");
+    if (projectId) {
+      socketService.startBot(projectId);
+    }
     console.log("Bot started");
 
     // Обработчик входящих сообщений
@@ -26,12 +30,26 @@ const ChatPreview = ({ onClose }) => {
       setInputRequest(prompt);
     });
 
+    // Обработчик ошибок (например, лимит итераций)
+    if (socketService.socket) {
+      socketService.socket.on("error", (error) => {
+        if (
+          typeof error === "string" &&
+          (error.includes("предел итераций") || error.includes("цикл"))
+        ) {
+          setErrorPopup(
+            "Достигнут предел итераций (возможен цикл в логике бота). Исполнение остановлено."
+          );
+        }
+      });
+    }
+
     // Очистить соединение при закрытии
     return () => {
       socketService.disconnect();
       console.log("Bot stopped");
     };
-  }, []);
+  }, [projectId]);
 
   // Отправить сообщение
   const handleSendMessage = () => {
@@ -44,10 +62,19 @@ const ChatPreview = ({ onClose }) => {
     setMessages((prevMessages) => [...prevMessages, userMessage]);
 
     if (inputRequest) {
-      socketService.sendInputResponse(input.trim()); // Отправка ответа на запрос ввода
+      socketService.sendInputResponse(input.trim());
       setInputRequest(null);
     } else {
-      socketService.sendMessage(input.trim()); // Отправка сообщения на сервер
+      socketService.sendMessage(input.trim());
+      
+      // Обновляем статус бота при командах
+      if (input.trim().startsWith('/')) {
+        if (input.trim() === '/stop') {
+          setBotStatus("stopped");
+        } else if (input.trim() === '/restart') {
+          setBotStatus("active");
+        }
+      }
     }
 
     setInput("");
@@ -70,6 +97,25 @@ const ChatPreview = ({ onClose }) => {
     }
   };
 
+  const renderBotStatus = () => {
+    const statusColor = botStatus === "active" ? "#4CAF50" : "#f44336";
+    const statusText = botStatus === "active" ? "Активен" : "Остановлен";
+    
+    return (
+      <div style={{
+        padding: "8px 12px",
+        backgroundColor: statusColor,
+        color: "white",
+        borderRadius: "4px",
+        fontSize: "12px",
+        fontWeight: "bold",
+        marginBottom: "10px"
+      }}>
+        Статус бота: {statusText}
+      </div>
+    );
+  };
+
   return (
     <div
       style={{
@@ -78,13 +124,70 @@ const ChatPreview = ({ onClose }) => {
         top: 0,
         bottom: 0,
         width: "300px",
-        background: "rgba(30,30,30, 0.3)",
+        background: "rgba(30,30,30, 0.95)",
         color: "#fff",
         display: "flex",
         flexDirection: "column",
         boxShadow: "-2px 0 10px rgba(0, 0, 0, 0.5)",
       }}
     >
+      {/* Всплывающее окно ошибки цикла */}
+      {errorPopup && (
+        <div style={{
+          position: "absolute",
+          top: 60,
+          left: 20,
+          right: 20,
+          zIndex: 999,
+          background: "#ff4444",
+          color: "#fff",
+          padding: "16px 12px",
+          borderRadius: 8,
+          fontWeight: "bold",
+          boxShadow: "0 2px 12px rgba(0,0,0,0.25)",
+          textAlign: "center",
+        }}>
+          {errorPopup}
+          <button
+            style={{
+
+              background: "#fff",
+              color: "#ff4444",
+              border: "none",
+              borderRadius: 4,
+              padding: "4px 10px",
+              fontWeight: "bold",
+              cursor: "pointer",
+            }}
+            onClick={() => setErrorPopup(null)}
+          >
+            Закрыть
+          </button>
+        </div>
+      )}
+      <div
+        style={{
+          padding: "10px",
+          borderBottom: "1px solid rgba(255,255,255,0.1)",
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center" }}>
+          <button
+            onClick={onClose}
+            style={{
+              background: "transparent",
+              border: "none",
+              color: "#fff",
+              fontSize: "18px",
+              cursor: "pointer",
+            }}
+          >
+            ✕
+          </button>
+        </div>
+        {renderBotStatus()}
+      </div>
+
       <div
         style={{
           flexGrow: 1,
@@ -116,13 +219,15 @@ const ChatPreview = ({ onClose }) => {
                     ? "#000"
                     : "#fff",
                 whiteSpace: "pre-wrap",
+                maxWidth: "80%",
+                wordWrap: "break-word",
               }}
             >
               {msg.text}
             </span>
           </div>
         ))}
-        {renderConnectionStatusMessage()} { }
+        {renderConnectionStatusMessage()}
       </div>
 
       <div
@@ -142,7 +247,7 @@ const ChatPreview = ({ onClose }) => {
               handleSendMessage();
             }
           }}
-          placeholder="Напиши сообщение..."
+          placeholder="Напиши сообщение или команду (/help)..."
           style={{
             flexGrow: 1,
             padding: "8px",
@@ -167,22 +272,6 @@ const ChatPreview = ({ onClose }) => {
           Отправить
         </button>
       </div>
-
-      <button
-        onClick={onClose}
-        style={{
-          position: "absolute",
-          top: "10px",
-          right: "10px",
-          background: "transparent",
-          border: "none",
-          color: "#fff",
-          fontSize: "18px",
-          cursor: "pointer",
-        }}
-      >
-        ✕
-      </button>
     </div>
   );
 };

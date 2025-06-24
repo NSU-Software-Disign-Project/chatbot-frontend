@@ -1,0 +1,14 @@
+.project-menu-dropdown-portal {
+  position: fixed;
+  z-index: 3001;
+  min-width: 180px;
+  background: #23214a;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px #0005;
+  padding: 12px;
+  transition: opacity 0.18s, transform 0.18s;
+}
+
+.project-menu-dropdown-portal-open {
+  /* Класс для анимации появления/исчезновения через JS */
+} 

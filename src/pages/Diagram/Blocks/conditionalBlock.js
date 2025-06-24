@@ -7,6 +7,7 @@ export const createConditionalBlock = (diagram) => {
   return $(
     go.Node,
     "Auto",
+    new go.Binding("location", "loc", go.Point.parse).makeTwoWay(go.Point.stringify),
     $(
       go.Panel,
       "Auto",
@@ -14,49 +15,34 @@ export const createConditionalBlock = (diagram) => {
         go.Shape,
         "RoundedRectangle",
         {
-          fill: "rgba(255, 34, 0, 0.25)",
-          stroke: "crimson",
+          fill: "#6a1b1b", // Темный красный фон
+          stroke: "#ff0000", // Яркая обводка
           strokeWidth: 2,
         }
       ),
       $(
         go.Panel,
         "Vertical",
-        { alignment: go.Spot.TopLeft, margin: 5 },
+        { alignment: go.Spot.TopLeft, margin: 10 },
         $(
           go.TextBlock,
           {
             margin: new go.Margin(5, 0),
-            font: "bold 8pt sans-serif",
-            stroke: "rgba(255, 187, 187, 1)",
+            font: "bold 14pt sans-serif", // Увеличенный шрифт
+            stroke: "#fff", // Белый текст
             text: "Conditional Block",
           }
         ),
-        new go.Panel("Table")
-          .addColumnDefinition(0, { alignment: go.Spot.Left })
-          .addColumnDefinition(1, { alignment: go.Spot.Center })
-          .addColumnDefinition(2, { alignment: go.Spot.Right })
-          .add(
-            new go.Panel("Horizontal", { column: 0, row: 0 }).add(
-              createPort("IN", go.Spot.Left, true, "red")
-            ),
-            $(go.TextBlock,
-              {column: 1, row: 0, editable: false, isMultiline: false, alignment: go.Spot.Center,
-                font: "bold 8pt sans-serif", margin: new go.Margin(0, 0, 4, 4), stroke:"rgba(204, 255, 209, 0)", text: "Condition", },
-            ),
-          // new go.Panel("Horizontal", { column: 2, row: 0 }).add(
-          //   createPort("OUT", go.Spot.Right, false, "red"),
-          // ),
+        new go.Panel("Horizontal", { column: 0, row: 0 }).add(
+          createPort("IN", go.Spot.Left, true, "red")
         ),
-
-        $(
-          go.TextBlock,
+        $(go.TextBlock,
           {
             editable: true,
             isMultiline: false,
-            font: "bold 10pt sans-serif",
-            margin: new go.Margin(0, 0),
-            stroke: "rgba(255, 187, 187, 1)",
+            font: "bold 12pt sans-serif",
+            margin: new go.Margin(10, 0),
+            stroke: "#fff", // Белый текст
           },
           new go.Binding("text", "variableName").makeTwoWay()
         ),
@@ -68,7 +54,9 @@ export const createConditionalBlock = (diagram) => {
             name: "CONDITIONS_PANEL",
             defaultAlignment: go.Spot.Left,
             stretch: go.GraphObject.Horizontal,
+            margin: new go.Margin(10, 0),
           },
+
           new go.Binding("itemArray", "conditions").makeTwoWay(),
           {
             itemTemplate: $(
@@ -78,8 +66,8 @@ export const createConditionalBlock = (diagram) => {
               $(
                 go.TextBlock,
                 {
-                  font: "bold 8pt sans-serif",
-                  stroke: "rgba(255, 187, 187, 1)",
+                  font: "bold 10pt sans-serif", // Увеличенный шрифт
+                  stroke: "#fff", // Белый текст
                   editable: true,
                   isMultiline: false,
                   margin: new go.Margin(2, 10, 2, 0),
@@ -97,6 +85,7 @@ export const createConditionalBlock = (diagram) => {
                   fromSpot: go.Spot.Right,
                   fromLinkable: true,
                   cursor: "pointer",
+                  fromMaxLinks: 1,
                 },
                 new go.Binding("portId", "portId")
               )
@@ -105,7 +94,7 @@ export const createConditionalBlock = (diagram) => {
         )
       )
     ),
-    
+
     {
       contextMenu: $(
         go.Adornment,
