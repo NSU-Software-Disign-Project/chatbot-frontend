@@ -51,7 +51,23 @@ function RegisterForm() {
       });
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Ошибка регистрации');
+        const errorMessage = errorData.message || 'Ошибка регистрации';
+
+        const rawErrors = errorMessage.replace(/^[^:]+:\s*/, '').split(';');
+
+        const cleanedErrors = rawErrors
+          .map((err) => {
+            const parts = err.split(':');
+            if (parts.length > 1) {
+              return parts.slice(1).join(':').trim(); // Соединяем обратно, если было несколько ":"
+            }
+            return err.trim(); // Если формат ошибки непредсказуем
+          })
+          .filter(Boolean); // Убираем пустые строки
+
+        const finalMessage = cleanedErrors.join('\n'); // Или "\n" для отображения на разных строках
+
+        throw new Error(finalMessage);
       }
       const data = await response.json();
       if (data.token) {
